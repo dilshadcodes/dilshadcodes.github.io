@@ -1,0 +1,2114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no, viewport-fit=cover">
+    <title>tutoriomFree</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome for player icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- KaTeX for LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Montserrat', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+  
+html {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+html::-webkit-scrollbar {
+    display: none;
+}
+        /* ----- GLOBAL DISABLE INTERACTIONS ----- */
+        body {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* ----- CARD & UI STYLES (preserved from original) ----- */
+        .card-hover:hover {
+            transform: translateY(-5px);
+            transition: all 0.3s ease;
+        }
+        .video-placeholder {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .text-highlight {
+            background: linear-gradient(to right, #4f46e5, #9333ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Custom Dropdown Styles (existing chapter dropdown) */
+        .triangle-down {
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 7px solid #4f46e5;
+            transition: transform 0.3s ease;
+            margin-left: 16px;
+        }
+        .dropdown-open .triangle-down {
+            transform: rotate(180deg);
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            z-index: 50;
+            width: 100%;
+            top: calc(100% + 6px);
+            left: 0;
+            max-height: 245px;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .dropdown-content::-webkit-scrollbar {
+            display: none;
+        }
+        .dropdown-open .dropdown-content {
+            display: block;
+        }
+        .dropdown-item {
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Thumbnail play button overlay */
+        .play-overlay-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 64px;
+            height: 64px;
+            background-color: #4f46e5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+            cursor: pointer;
+        }
+        .play-overlay-btn:hover {
+            transform: translate(-50%, -50%) scale(1.08);
+            background-color: #4338ca;
+        }
+        .play-overlay-btn i {
+            color: white;
+            font-size: 28px;
+            margin-left: 4px;
+        }
+
+        /* Loading skeleton / spinner */
+        .loader-grid {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 1rem;
+        }
+        .loader-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #4f46e5;
+            border-radius: 50%;
+            margin: 0 6px;
+            animation: pulse 1.2s infinite ease-in-out;
+        }
+        .loader-dot:nth-child(2) { animation-delay: 0.2s; }
+        .loader-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Error message */
+        .error-message {
+            text-align: center;
+            padding: 2rem;
+            color: #dc2626;
+            background: #fee2e2;
+            border-radius: 12px;
+            grid-column: 1 / -1;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #64748b;
+            grid-column: 1 / -1;
+            font-weight: 500;
+        }
+
+        /* ----- VIDEO PLAYER STYLES (exact from spec) ----- */
+        .video-player-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: #000;
+        }
+        .youtube-iframe-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .youtube-iframe-wrapper iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            pointer-events: none;
+        }
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: auto;
+            cursor: pointer;
+        }
+        .modern-control-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.7) 60%, transparent 100%);
+            color: white;
+            padding: 12px 16px 8px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 20;
+            font-family: 'Montserrat', sans-serif;
+            pointer-events: auto;
+        }
+        .video-overlay:hover .modern-control-bar,
+        .modern-control-bar.visible {
+            opacity: 1;
+        }
+        .top-progress-container {
+            width: 100%;
+            height: 3px;
+            background: rgba(255,255,255,0.2);
+            cursor: pointer;
+            position: relative;
+            margin-bottom: 2px;
+        }
+        .progress-track {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background: #ef4444;
+            transition: width 0.1s linear;
+        }
+        .progress-thumb {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 12px;
+            height: 12px;
+            background: #ef4444;
+            border: none;
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            cursor: pointer;
+            pointer-events: none;
+        }
+        .top-progress-container:hover .progress-thumb {
+            opacity: 1;
+        }
+        .controls-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            min-height: 36px;
+            flex-wrap: nowrap;
+        }
+        .left-controls, .right-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .center-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+        }
+        .control-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            min-height: 40px;
+            font-size: 16px;
+            transition: opacity 0.15s;
+            flex-shrink: 0;
+        }
+        .control-btn:hover { opacity: 0.75; background: transparent; }
+        .control-btn:active { opacity: 0.5; background: transparent; }
+        .control-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+        .play-pause-btn svg { width: 24px; height: 24px; }
+        .time-display {
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    text-align: center;
+    color: rgba(255,255,255,0.95);
+    background: rgba(0,0,0,0.45);
+    padding: 3px 10px;
+    border-radius: 9999px;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+        }
+        .speed-btn {
+            font-size: 14px;
+            font-weight: 500;
+            padding: 4px 8px;
+            min-width: 40px;
+        }
+        .double-tap-indicator {
+            position: absolute;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 15;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .double-tap-left { left: 0; background: linear-gradient(to right, rgba(239,68,68,0.7), transparent); }
+        .double-tap-right { right: 0; background: linear-gradient(to left, rgba(239,68,68,0.7), transparent); }
+        .double-tap-indicator.show { opacity: 1; }
+        .double-tap-text {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .video-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            z-index: 5;
+        }
+        .video-loading-spinner {
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ----- NEW COURSE/SUBJECT SELECTION STYLES (from reference) ----- */
+        .filter-blue-bg {
+            background-color: #dbeafe;
+            border-radius: 20px;
+            padding: 20px 20px;
+            margin-bottom: 32px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 12px;
+            margin-top: 0;
+            white-space: nowrap;
+            width: 100%;
+        }
+        .form-label::before, .form-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background-color: #94a3b8;
+        }
+        .form-label::before { margin-right: 8px; }
+        .form-label::after { margin-left: 8px; }
+
+        /* Custom dropdown (course/subject) styles */
+        .custom-select-wrapper {
+            position: relative;
+            width: 100%;
+            margin-bottom: 1.5rem;
+        }
+        .custom-select-wrapper:last-child {
+            margin-bottom: 0;
+        }
+        .custom-select-trigger {
+            width: 100%;
+            padding: 12px 18px;
+            border: 1px solid #1e3a8a;
+            border-radius: 9999px;
+            font-size: 0.9rem;
+            outline: none;
+            background-color: #1e3a8a;
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .custom-select-trigger span:first-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+            color: white;
+        }
+        .custom-select-trigger::after {
+            content: "▼";
+            font-size: 0.7rem;
+            color: #e2e8f0;
+            transition: transform 0.2s;
+            margin-left: 12px;
+            flex-shrink: 0;
+        }
+        .custom-select-trigger.open::after {
+            transform: rotate(180deg);
+        }
+        .custom-select-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            width: 100%;
+            background-color: #111827;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+            z-index: 50;
+            display: none;
+            max-height: 280px;
+            overflow-y: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            color: #f1f5f9;
+        }
+        .custom-select-dropdown::-webkit-scrollbar { display: none; }
+        .custom-select-dropdown.show { display: block; }
+        .custom-select-option {
+            padding: 12px 18px;
+            font-size: 0.9rem;
+            font-family: 'Montserrat', sans-serif;
+            cursor: pointer;
+            transition: background 0.1s;
+            border-bottom: 1px solid #334155;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #e2e8f0;
+        }
+        .custom-select-option:last-child { border-bottom: none; }
+        .custom-select-option:hover { background-color: #1e293b; }
+        .custom-select-option.selected {
+            background-color: #10b981;
+            font-weight: 500;
+            color: white;
+        }
+
+        /* ----- TRAFFIC INSIGHT CAPSULE ----- */
+        .badge-fixed-corner {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+        }
+        @keyframes float-gentle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        .tech-capsule {
+            background: #000;
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.8), 0 0 12px rgba(34,197,94,0.15);
+            animation: float-gentle 4s ease-in-out infinite;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            border-radius: 9999px;
+            white-space: nowrap;
+            cursor: default;
+        }
+        .tech-capsule:hover {
+            border-color: rgba(34, 197, 94, 1);
+            box-shadow: 0 0 20px rgba(34,197,94,0.4);
+            transform: scale(1.05);
+        }
+        .pulse-dot {
+            width: 7px;
+            height: 7px;
+            background-color: #22c55e;
+            border-radius: 50%;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .pulse-dot::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: #22c55e;
+            border-radius: 50%;
+            animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(3.5); opacity: 0; }
+        }
+        .capsule-divider {
+            margin: 0 6px;
+            opacity: 0.4;
+            color: white;
+        }
+
+        /* ----- CAPSULE CAROUSEL ----- */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .mask-fade {
+            mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+        }
+        .capsule-shadow-purple { box-shadow: 0 8px 20px -6px rgba(168, 85, 247, 0.4); }
+        .capsule-shadow-blue   { box-shadow: 0 8px 20px -6px rgba(59, 130, 246, 0.4); }
+        .capsule-shadow-emerald{ box-shadow: 0 8px 20px -6px rgba(16, 185, 129, 0.4); }
+        .capsule-shadow-amber  { box-shadow: 0 8px 20px -6px rgba(245, 158, 11, 0.4); }
+        .capsule-shadow-rose   { box-shadow: 0 8px 20px -6px rgba(225, 29, 72, 0.4); }
+        .capsule-shadow-slate  { box-shadow: 0 8px 20px -6px rgba(71, 85, 105, 0.4); }
+
+        /* ----- FEED SECTION HEADER ----- */
+        #feed-section-header {
+            display: none;
+        }
+        #feed-section-header.visible {
+            display: block;
+        }
+        .feed-chapter-name {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 900;
+            color: #0f172a;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            margin-bottom: 6px;
+        }
+        .feed-bar {
+            display: inline-block;
+            width: 4px;
+            height: 1.75rem;
+            background: #4f46e5;
+            border-radius: 2px;
+            margin-right: 12px;
+            vertical-align: middle;
+        }
+        .feed-meta {
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: #4f46e5;
+            letter-spacing: 0.01em;
+            text-transform: none;
+            margin-left: calc(4px + 12px);
+            margin-top: 6px;
+            display: inline-block;
+            background: #eef2ff;
+            border: 1px solid #c7d2fe;
+            border-radius: 8px;
+            padding: 3px 10px;
+        }
+        .feed-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.01em;
+        }
+
+        /* ----- PRACTICE / QUESTION CARD STYLES (from quiz1) ----- */
+        #practice-section {
+            display: none;
+        }
+        #practice-section.visible {
+            display: block;
+        }
+        .question-item {
+            background-color: #f1f5f9;
+            padding: 16px 12px;
+            border-radius: 4px;
+            margin: 20px 0;
+            transition: background-color 0.2s;
+        }
+        .question-item.subjective {
+            background-color: #ffe4e1;
+        }
+        .q-tag {
+            display: inline-block;
+            background-color: #000000;
+            color: #ffffff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 0.05em;
+        }
+        .question-text {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        .option-container {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            margin: 6px 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: #ffffff;
+        }
+        .option-container:hover { background-color: #f8fafc; border-color: #94a3b8; }
+        .option-container input[type="radio"] {
+    margin-right: 12px;
+    accent-color: #000000;
+    pointer-events: auto;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    min-height: 18px;
+    flex-shrink: 0;
+    -webkit-appearance: none;
+    appearance: none;
+    border: 2px solid #94a3b8;
+    border-radius: 50%;
+    background-color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+.option-container input[type="radio"]:checked {
+    border-color: #000000;
+    background-color: #000000;
+    box-shadow: inset 0 0 0 3px #ffffff;
+}
+        .option-container.correct-bg { background-color: #d1fae5; border-color: #10b981; }
+        .option-container.wrong-bg { background-color: #fee2e2; border-color: #ef4444; }
+        .action-buttons { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+        .action-btn {
+            background-color: #334155;
+            color: white;
+            padding: 9px 20px;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: opacity 0.2s;
+        }
+        .action-btn:hover { opacity: 0.9; }
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .submit-btn { background-color: #059669; }
+        .text-solution-btn, .video-solution-btn { background-color: #4b5563; }
+        .btn-gold-text-solution {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, #fbbf24 0%, #d97706 100%);
+            box-shadow: 0 2px 8px rgba(180, 83, 9, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+            border: 1px solid #b45309;
+            cursor: pointer;
+            outline: none;
+            flex-shrink: 0;
+        }
+        .btn-gold-text-solution:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .solution-container { margin-top: 12px; display: none; }
+        .solution-container.visible { display: block; }
+        .solution-box {
+            padding: 12px;
+            background-color: #ecfdf5;
+            border-left: 4px solid #10b981;
+            font-size: 0.85rem;
+            color: #065f46;
+            border-radius: 4px;
+        }
+        .video-container { margin-top: 12px; width: 100%; border-radius: 4px; overflow: hidden; }
+        .video-container iframe, .video-container video { width: 100%; max-width: 100%; border-radius: 4px; display: block; }
+        .correct-answer-box {
+            margin-top: 12px;
+            padding: 12px;
+            background-color: #fef9c3;
+            border-left: 4px solid #eab308;
+            font-size: 0.85rem;
+            color: #854d0e;
+            border-radius: 4px;
+            display: none;
+        }
+        .correct-answer-box.visible { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+        .correct-answer-label { font-weight: 700; }
+        .practice-loader {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.85rem;
+            color: #6b7280;
+            display: none;
+        }
+        .katex { font-size: 1em !important; font-family: 'Montserrat', sans-serif !important; }
+        .katex * { font-family: 'Montserrat', sans-serif !important; font-style: normal !important; font-weight: 600 !important; }
+        .katex-display { margin: 0.5em 0; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-4 md:p-12 font-sans text-gray-900">
+
+    <!-- Header Section -->
+    <header class="max-w-6xl mx-auto mb-8 border-l-4 border-indigo-600 pl-6 py-2">
+        <div class="mb-6 inline-block">
+            <div class="bg-gray-900 px-4 py-1.5 rounded-lg shadow-sm">
+                <span class="text-xl font-extrabold tracking-tighter text-white">
+                    tutoriom<span class="text-indigo-400">.</span>
+                </span>
+            </div>
+        </div>
+        <div class="flex items-center space-x-2 mb-2">
+            <span class="flex h-2 w-2 rounded-full bg-indigo-600 animate-pulse"></span>
+            <span class="text-[10px] font-bold tracking-[0.2em] uppercase text-gray-400">Preparation Course</span>
+        </div>
+        <h1 class="text-4xl md:text-5xl font-black tracking-tight mb-4 leading-[1.1]">
+            <span class="text-highlight">The Complete Learning Hub</span>
+        </h1>
+        <p class="text-gray-500 max-w-xl font-medium leading-relaxed">
+            Tutoriom brings lectures, notes, and practice together in one clean and organized platform.
+        </p>
+    </header>
+
+    <!-- Course & Subject Selection Section (NEW) -->
+    <section class="max-w-6xl mx-auto mb-0 relative">
+        <div class="filter-blue-bg">
+    <div class="flex flex-col md:flex-row md:gap-6">
+        <div class="flex-1">
+            <div class="form-label">Select Course</div>
+            <div id="courseSelectWrapper" class="custom-select-wrapper"></div>
+        </div>
+        <div class="flex-1 mt-6 md:mt-0">
+            <div class="form-label">Select Subject</div>
+            <div id="subjectSelectWrapper" class="custom-select-wrapper"></div>
+        </div>
+    </div>
+        </div>
+    </section>
+
+    <!-- Custom Chapter Dropdown Container (existing) -->
+    <section class="max-w-6xl mx-auto mb-6 relative">
+        <div class="flex items-center gap-3">
+        <div class="max-w-xs flex-shrink-0" id="dropdown-container">
+            <button onclick="toggleDropdown()" class="w-full bg-white border border-gray-200 text-gray-700 py-4 px-5 rounded-xl shadow-sm flex items-center justify-between hover:border-indigo-300 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/10">
+                <span id="selected-value" class="font-bold text-sm text-gray-900 tracking-wide" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:220px; display:inline-block;">--- Select Chapter ---</span>
+                <div class="triangle-down"></div>
+            </button>
+            <div class="dropdown-content bg-white border border-gray-200 rounded-xl shadow-xl animate-in fade-in slide-in-from-top-1 duration-200">
+                <div class="flex flex-col" id="dropdown-items-container">
+                    <!-- Dynamically populated from API -->
+                </div>
+            </div>
+        </div>
+        <button id="copy-link-btn" onclick="copyChapterLink()" title="Copy shareable link"
+            class="flex-shrink-0 w-10 h-10 items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow transition-colors"
+            style="display:none;">
+            <i class="fas fa-link text-sm"></i>
+        </button>
+        </div>
+    </section>
+
+    <!-- Capsule Carousel -->
+    <div class="max-w-6xl mx-auto mb-6 relative">
+        <div id="capsule-carousel" class="flex overflow-x-auto no-scrollbar gap-3 py-4 px-8 snap-x mask-fade">
+
+            <!-- Lectures -->
+            <button id="capsule-lectures" class="flex-shrink-0 flex items-center gap-2.5 bg-white p-1 pr-4 rounded-full border border-slate-200/60 snap-center transition-all duration-300 hover:scale-105 active:scale-95 capsule-shadow-purple">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-sm text-white">
+                    <i data-lucide="play-circle" class="w-4 h-4" stroke-width="2.5"></i>
+                </div>
+                <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-700">Lectures</span>
+            </button>
+
+            <!-- Practice -->
+            <button id="capsule-practice" class="flex-shrink-0 flex items-center gap-2.5 bg-white p-1 pr-4 rounded-full border border-slate-200/60 snap-center transition-all duration-300 hover:scale-105 active:scale-95 capsule-shadow-blue">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-sm text-white">
+                    <i data-lucide="pencil" class="w-4 h-4" stroke-width="2.5"></i>
+                </div>
+                <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-700">Practice</span>
+            </button>
+
+            <!-- Notes -->
+            <button class="flex-shrink-0 flex items-center gap-2.5 bg-white p-1 pr-4 rounded-full border border-slate-200/60 snap-center transition-all duration-300 hover:scale-105 active:scale-95 capsule-shadow-emerald">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-sm text-white">
+                    <i data-lucide="book-open" class="w-4 h-4" stroke-width="2.5"></i>
+                </div>
+                <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-700">Notes</span>
+            </button>
+
+            <!-- Quizzes -->
+            <button class="flex-shrink-0 flex items-center gap-2.5 bg-white p-1 pr-4 rounded-full border border-slate-200/60 snap-center transition-all duration-300 hover:scale-105 active:scale-95 capsule-shadow-amber">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-sm text-white">
+                    <i data-lucide="layout" class="w-4 h-4" stroke-width="2.5"></i>
+                </div>
+                <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-700">Quizzes</span>
+            </button>
+
+            <!-- Saved -->
+            <button class="flex-shrink-0 flex items-center gap-2.5 bg-white p-1 pr-4 rounded-full border border-slate-200/60 snap-center transition-all duration-300 hover:scale-105 active:scale-95 capsule-shadow-rose">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center shadow-sm text-white">
+                    <i data-lucide="star" class="w-4 h-4" stroke-width="2.5"></i>
+                </div>
+                <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-700">Saved</span>
+            </button>
+
+            <!-- History -->
+            <button class="flex-shrink-0 flex items-center gap-2.5 bg-white p-1 pr-4 rounded-full border border-slate-200/60 snap-center transition-all duration-300 hover:scale-105 active:scale-95 capsule-shadow-slate">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center shadow-sm text-white">
+                    <i data-lucide="clock" class="w-4 h-4" stroke-width="2.5"></i>
+                </div>
+                <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-700">History</span>
+            </button>
+
+        </div>
+        <div class="absolute top-0 right-0 bottom-0 w-12 bg-gradient-to-l from-gray-50 to-transparent pointer-events-none z-10"></div>
+        <div class="absolute top-0 left-0 bottom-0 w-12 bg-gradient-to-r from-gray-50 to-transparent pointer-events-none z-10"></div>
+    </div>
+
+    <!-- Feed Section Header -->
+    <div id="feed-section-header" class="max-w-6xl mx-auto mb-6">
+        <div id="feed-header-chapter">
+            <div style="display:flex;align-items:center;">
+                <span class="feed-bar"></span>
+                <span class="feed-chapter-name" id="feed-chapter-text"></span>
+            </div>
+            <div class="feed-meta" id="feed-meta-text"></div>
+        </div>
+        <div id="feed-header-recent" style="display:none;">
+            <div style="display:flex;align-items:center;">
+                <span class="feed-bar"></span>
+                <span class="feed-label">Latest Updates</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Gallery Grid -->
+    <main class="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" id="posts-grid">
+        <!-- Dynamic content will be injected here -->
+        <div class="loader-grid col-span-full">
+            <div class="loader-dot"></div>
+            <div class="loader-dot"></div>
+            <div class="loader-dot"></div>
+        </div>
+    </main>
+
+    <!-- Practice Section (questions infinite scroll) -->
+    <div id="practice-section" class="max-w-6xl mx-auto px-0">
+        <div id="questions-container"></div>
+        <div id="practice-loader" class="practice-loader">Loading more questions...</div>
+        <div id="practice-empty" style="display:none;" class="empty-state">📝 No questions found for this chapter.</div>
+        <div id="practice-error" style="display:none;" class="error-message" style="margin: 1rem 0;">⚠️ Failed to load questions. Please try again.</div>
+    </div>
+
+    <!-- Traffic Insight Capsule -->
+    <div class="badge-fixed-corner">
+        <div class="tech-capsule">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <div class="pulse-dot"></div>
+                <span style="font-weight:600;color:white;font-family:'Montserrat',sans-serif;">Traffic insight</span>
+            </div>
+            <span class="capsule-divider">—</span>
+            <span id="visit-count-display" style="font-weight:800;color:white;font-family:'Montserrat',sans-serif;">…</span>
+        </div>
+    </div>
+
+    <footer class="mt-20 max-w-6xl mx-auto border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-gray-400 text-[10px] font-bold tracking-widest uppercase">
+    </footer>
+    
+    <script>
+        (function(){
+            "use strict";
+            lucide.createIcons();
+
+            // ---------- CONFIGURATION ----------
+            const BASE_URL = 'https://tutoriumfree.onrender.com';  // Public API
+
+            // ---------- VISIT TRACKING ----------
+            (async function trackVisit() {
+                try {
+                    fetch(BASE_URL + '/visit', { method: 'POST' }).catch(() => {});
+
+                    const res = await fetch(BASE_URL + '/visit-count');
+                    if (!res.ok) throw new Error('stats fetch failed');
+                    const data = await res.json();
+
+                    const el = document.getElementById('visit-count-display');
+                    if (el) el.textContent = data.count ?? '—';
+                } catch (e) {
+                    const el = document.getElementById('visit-count-display');
+                    if (el) el.textContent = '—';
+                }
+            })();
+            // Extract URL parameters (kept for reference but not used for auto-selection)
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramClassId = urlParams.get('classId');
+            const paramSubjectId = urlParams.get('subjectId');
+            const paramChapterId = urlParams.get('chapterId');
+
+            // State (initialized to null - no pre-selection)
+            let currentClassId = null;
+            let currentSubjectId = null;
+            let currentChapterId = null;
+            let chaptersList = [];
+            let activePlayerInstance = null; // reference to SimpleYouTubePlayer instance
+            let classesData = []; // store fetched classes with subjects
+
+            // ---------- PRACTICE STATE ----------
+            let practiceMode = false; // true = showing questions, false = showing posts
+            let practiceCursor = null;
+            let practiceHasMore = true;
+            let practiceLoading = false;
+            let practiceQuestionCount = 0; // running total for global question numbering
+            
+            // DOM elements
+            const dropdownContainer = document.getElementById('dropdown-container');
+            const selectedValueSpan = document.getElementById('selected-value');
+            const dropdownItemsContainer = document.getElementById('dropdown-items-container');
+            const postsGrid = document.getElementById('posts-grid');
+            const courseWrapper = document.getElementById('courseSelectWrapper');
+            const subjectWrapper = document.getElementById('subjectSelectWrapper');
+
+            // ---------- DISABLE UNWANTED INTERACTIONS ----------
+            document.addEventListener('dblclick', e => e.preventDefault());
+            document.addEventListener('contextmenu', e => e.preventDefault());
+
+            // ---------- UTILS ----------
+            function formatDate(createdAt) {
+                if (!createdAt) return 'Unknown date';
+                try {
+                    let date;
+                    if (typeof createdAt === 'object' && createdAt._seconds) {
+                        date = new Date(createdAt._seconds * 1000);
+                    } else if (typeof createdAt === 'string') {
+                        date = new Date(createdAt);
+                    } else if (typeof createdAt === 'number') {
+                        date = new Date(createdAt * 1000);
+                    } else {
+                        return 'Invalid date';
+                    }
+                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                } catch {
+                    return 'Date error';
+                }
+            }
+
+            function extractYouTubeID(url) {
+                if (!url) return null;
+                const patterns = [/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/, /youtube\.com\/shorts\/([^&\n?#]+)/];
+                for (let pattern of patterns) {
+                    const match = url.match(pattern);
+                    if (match && match[1]) return match[1];
+                }
+                return null;
+            }
+
+            function getThumbnailUrl(videoUrl, providedThumbnail) {
+                if (providedThumbnail && providedThumbnail.trim() !== '') return providedThumbnail;
+                const videoId = extractYouTubeID(videoUrl);
+                return videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : 'https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?q=80&w=1200&auto=format&fit=crop';
+            }
+
+            // ---------- CUSTOM DROPDOWN HELPERS (for course/subject) ----------
+            function closeAllCustomDropdowns() {
+                document.querySelectorAll('.custom-select-dropdown').forEach(dd => dd.classList.remove('show'));
+                document.querySelectorAll('.custom-select-trigger').forEach(tr => tr.classList.remove('open'));
+            }
+
+            function buildCustomSelect(options, placeholder, selectedValue, onSelect) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'custom-select-wrapper';
+                const trigger = document.createElement('div');
+                trigger.className = 'custom-select-trigger';
+                const triggerSpan = document.createElement('span');
+                const selectedOption = options.find(opt => opt.value === selectedValue);
+                triggerSpan.textContent = selectedOption ? selectedOption.label : placeholder;
+                trigger.appendChild(triggerSpan);
+                const dropdown = document.createElement('div');
+                dropdown.className = 'custom-select-dropdown';
+                
+                if (!options.length) {
+                    const noOpt = document.createElement('div');
+                    noOpt.className = 'custom-select-option disabled';
+                    noOpt.textContent = 'No options available';
+                    noOpt.style.cursor = 'default';
+                    noOpt.style.opacity = '0.6';
+                    dropdown.appendChild(noOpt);
+                } else {
+                    options.forEach(opt => {
+                        const optDiv = document.createElement('div');
+                        optDiv.className = 'custom-select-option';
+                        if (selectedValue === opt.value) optDiv.classList.add('selected');
+                        optDiv.textContent = opt.label;
+                        optDiv.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            triggerSpan.textContent = opt.label;
+                            dropdown.classList.remove('show');
+                            trigger.classList.remove('open');
+                            onSelect(opt.value, opt.label);
+                            // Update selected class
+                            dropdown.querySelectorAll('.custom-select-option').forEach(el => el.classList.remove('selected'));
+                            optDiv.classList.add('selected');
+                        });
+                        dropdown.appendChild(optDiv);
+                    });
+                }
+                
+                trigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    closeAllCustomDropdowns();
+                    dropdown.classList.add('show');
+                    trigger.classList.add('open');
+                });
+                
+                wrapper.appendChild(trigger);
+                wrapper.appendChild(dropdown);
+                return wrapper;
+            }
+
+            // Close custom dropdowns on outside click
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.custom-select-wrapper')) {
+                    closeAllCustomDropdowns();
+                }
+            });
+
+            // ---------- DROPDOWN LOGIC (existing chapter) ----------
+            window.toggleDropdown = function() {
+                dropdownContainer.classList.toggle('dropdown-open');
+            };
+
+            window.selectItem = function(chapterId, chapterName) {
+    selectedValueSpan.innerText = chapterName;
+    currentChapterId = chapterId === 'all' ? null : chapterId;
+    dropdownContainer.classList.remove('dropdown-open');
+    updateFeedSectionHeader();
+    if (currentChapterId) {
+        showPracticeView();
+    } else {
+        practiceMode = false;
+        document.getElementById('practice-section').classList.remove('visible');
+        postsGrid.style.display = '';
+        loadPostsForCurrentChapter();
+    }
+};
+
+            // Close chapter dropdown on outside click (separate from custom dropdowns)
+            window.onclick = function(event) {
+                if (!event.target.closest('#dropdown-container')) {
+                    dropdownContainer.classList.remove('dropdown-open');
+                }
+            };
+
+            // Populate/Repopulate chapter dropdown
+            function repopulateChapterDropdown(chapters) {
+                chaptersList = chapters || [];
+                dropdownItemsContainer.innerHTML = '';
+                
+                // "Default Feed" option (renamed from "All Chapters")
+                const allBtn = document.createElement('button');
+                allBtn.className = 'dropdown-item px-5 py-3.5 text-left text-sm font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors';
+                allBtn.textContent = 'Default Feed';
+                allBtn.onclick = () => selectItem('all', 'Default Feed');
+                dropdownItemsContainer.appendChild(allBtn);
+
+                // API chapters
+                chaptersList.forEach(ch => {
+                    const btn = document.createElement('button');
+                    btn.className = 'dropdown-item px-5 py-3.5 text-left text-sm font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors';
+                    btn.textContent = ch.chapterName;
+                    btn.onclick = () => selectItem(ch.chapterId, ch.chapterName);
+                    dropdownItemsContainer.appendChild(btn);
+                });
+
+                // Reset selected display to placeholder
+                selectedValueSpan.innerText = '--- Select Chapter ---';
+                currentChapterId = null;
+            }
+
+            // Initial populate with possible URL param (kept for compatibility but not used for auto-selection)
+            function populateDropdown(chapters) {
+                chaptersList = chapters || [];
+                dropdownItemsContainer.innerHTML = '';
+                
+                const allBtn = document.createElement('button');
+                allBtn.className = 'dropdown-item px-5 py-3.5 text-left text-sm font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors';
+                allBtn.textContent = 'Default Feed';
+                allBtn.onclick = () => selectItem('all', 'Default Feed');
+                dropdownItemsContainer.appendChild(allBtn);
+
+                chaptersList.forEach(ch => {
+                    const btn = document.createElement('button');
+                    btn.className = 'dropdown-item px-5 py-3.5 text-left text-sm font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors';
+                    btn.textContent = ch.chapterName;
+                    btn.onclick = () => selectItem(ch.chapterId, ch.chapterName);
+                    dropdownItemsContainer.appendChild(btn);
+                });
+
+                // Placeholder (no auto-selection)
+                selectedValueSpan.innerText = '--- Select Chapter ---';
+                currentChapterId = null;
+            }
+
+            // ---------- API CALLS ----------
+            async function fetchClasses() {
+                try {
+                    const res = await fetch(`${BASE_URL}/classes`);
+                    if (!res.ok) throw new Error(`Classes API error: ${res.status}`);
+                    const data = await res.json();
+                    return Array.isArray(data) ? data : [];
+                } catch (err) {
+                    console.error('Failed to fetch classes:', err);
+                    return [];
+                }
+            }
+
+            async function fetchChapters() {
+                try {
+                    const res = await fetch(`${BASE_URL}/chapters?classId=${currentClassId}&subjectId=${currentSubjectId}`);
+                    if (!res.ok) throw new Error(`Chapters API error: ${res.status}`);
+                    const data = await res.json();
+                    return Array.isArray(data) ? data : [];
+                } catch (err) {
+                    console.error('Failed to fetch chapters:', err);
+                    return [];
+                }
+            }
+
+            async function fetchRecentPosts() {
+                try {
+                    // CHANGE 1: removed classId parameter
+                    const res = await fetch(`${BASE_URL}/posts/recent`);
+                    if (!res.ok) throw new Error(`Recent posts error: ${res.status}`);
+                    const data = await res.json();
+                    return Array.isArray(data) ? data : [];
+                } catch (err) {
+                    console.error('Failed to fetch recent posts:', err);
+                    throw err;
+                }
+            }
+
+            async function fetchPostsByChapter(chapterId) {
+                try {
+                    const res = await fetch(`${BASE_URL}/posts?classId=${currentClassId}&subjectId=${currentSubjectId}&chapterId=${chapterId}`);
+                    if (!res.ok) throw new Error(`Posts by chapter error: ${res.status}`);
+                    const data = await res.json();
+                    return Array.isArray(data) ? data : [];
+                } catch (err) {
+                    console.error('Failed to fetch chapter posts:', err);
+                    throw err;
+                }
+            }
+
+            // ---------- PRACTICE: API ----------
+            async function fetchQuestionsPage(reset = false) {
+                if (!practiceHasMore || practiceLoading) return;
+                if (!currentClassId || !currentSubjectId || !currentChapterId) {
+                    document.getElementById('practice-error').style.display = 'block';
+                    document.getElementById('practice-error').textContent = '⚠️ Please select a Class, Subject, and Chapter first.';
+                    return;
+                }
+                practiceLoading = true;
+                const loaderEl = document.getElementById('practice-loader');
+                if (!reset) loaderEl.style.display = 'block';
+
+                try {
+                    const params = new URLSearchParams({
+                        classId: currentClassId,
+                        subjectId: currentSubjectId,
+                        chapterId: currentChapterId
+                    });
+                    if (practiceCursor !== null) params.append('after', practiceCursor.toString());
+
+                    const res = await fetch(`${BASE_URL}/questions?${params.toString()}`);
+                    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+                    const data = await res.json();
+
+                    const questions = data.questions || [];
+                    const container = document.getElementById('questions-container');
+
+                    if (reset) {
+                        container.innerHTML = '';
+                        practiceQuestionCount = 0;
+                        if (questions.length === 0) {
+                            document.getElementById('practice-empty').style.display = 'block';
+                            practiceHasMore = false;
+                        }
+                    }
+
+                    if (questions.length > 0) {
+                        document.getElementById('practice-empty').style.display = 'none';
+                        appendQuestions(questions);
+                    }
+
+                    practiceCursor = (data.nextCursor !== null && data.nextCursor !== undefined)
+                        ? (typeof data.nextCursor === 'number' ? data.nextCursor : parseInt(data.nextCursor, 10))
+                        : null;
+                    practiceHasMore = data.hasMore === true;
+                } catch (err) {
+                    console.error('Failed to fetch questions:', err);
+                    if (reset) {
+                        document.getElementById('practice-error').style.display = 'block';
+                    }
+                } finally {
+                    practiceLoading = false;
+                    document.getElementById('practice-loader').style.display = 'none';
+                }
+            }
+
+            // ---------- PRACTICE: RENDER ----------
+            function replaceNewlinesWithBr(text) {
+                if (!text) return text;
+                return text.replace(/\r?\n/g, '<br>');
+            }
+
+            function renderMathInElementWithDelay(element) {
+                if (!element) return;
+                const tryRender = () => {
+                    if (typeof renderMathInElement === 'function') {
+                        try {
+                            renderMathInElement(element, {
+                                delimiters: [
+                                    { left: '$$', right: '$$', display: true },
+                                    { left: '$', right: '$', display: false },
+                                    { left: '\\(', right: '\\)', display: false },
+                                    { left: '\\[', right: '\\]', display: true }
+                                ],
+                                throwOnError: false,
+                                errorColor: '#cc0000'
+                            });
+                        } catch (e) { console.warn('KaTeX error:', e); }
+                    } else {
+                        setTimeout(tryRender, 150);
+                    }
+                };
+                tryRender();
+            }
+
+            function getYouTubeEmbedUrl(url) {
+                if (!url) return null;
+                const patterns = [
+                    /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?#]+)/,
+                    /youtube\.com\/embed\/([^?]+)/
+                ];
+                for (let pattern of patterns) {
+                    const match = url.match(pattern);
+                    if (match && match[1]) return `https://www.youtube.com/embed/${match[1]}`;
+                }
+                return null;
+            }
+
+            function createVideoElement(url) {
+                if (!url) return null;
+                const container = document.createElement('div');
+                container.className = 'video-container';
+                const youtubeEmbed = getYouTubeEmbedUrl(url);
+                if (youtubeEmbed) {
+                    const iframe = document.createElement('iframe');
+                    iframe.src = youtubeEmbed;
+                    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+                    iframe.allowFullscreen = true;
+                    iframe.frameBorder = '0';
+                    iframe.style.width = '100%';
+                    iframe.style.aspectRatio = '16/9';
+                    container.appendChild(iframe);
+                } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
+                    const video = document.createElement('video');
+                    video.controls = true;
+                    video.preload = 'metadata';
+                    video.style.width = '100%';
+                    const source = document.createElement('source');
+                    source.src = url;
+                    source.type = 'video/mp4';
+                    video.appendChild(source);
+                    container.appendChild(video);
+                }
+                return container;
+            }
+
+            function createQuestionElement(q, globalIndex) {
+                const formattedQuestionText = replaceNewlinesWithBr(q.questionText);
+                const formattedOptions = q.questionOptions ? q.questionOptions.map(opt => replaceNewlinesWithBr(opt)) : [];
+                const formattedSolutionText = q.solutionText ? replaceNewlinesWithBr(q.solutionText).replace(/\*\*(.+?)\*\*/g, '<strong><u>$1</u></strong>') : null;
+                const isSubjective = (q.questionType === 'Subjective');
+
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question-item';
+                if (isSubjective) questionDiv.classList.add('subjective');
+
+                const qTag = document.createElement('div');
+                qTag.className = 'q-tag';
+                qTag.textContent = `Question ${globalIndex} ${isSubjective ? '(Subjective)' : '(Objective)'}`;
+
+                const qText = document.createElement('div');
+                qText.className = 'question-text';
+                qText.innerHTML = formattedQuestionText;
+
+                questionDiv.appendChild(qTag);
+                questionDiv.appendChild(qText);
+
+                // Question image
+                if (q.questionImageUrl) {
+                    const img = document.createElement('img');
+                    img.src = q.questionImageUrl;
+                    img.alt = 'Question illustration';
+                    img.style.maxWidth = '100%';
+                    img.style.marginBottom = '12px';
+                    img.style.borderRadius = '4px';
+                    questionDiv.appendChild(img);
+                }
+
+                let optionsDiv = null, optionContainers = [], submitBtn = null, correctAnswerBox = null;
+
+                // Objective: options + submit
+                if (!isSubjective) {
+                    optionsDiv = document.createElement('div');
+                    optionsDiv.className = 'options-list';
+                    formattedOptions.forEach((opt, optIdx) => {
+                        const label = document.createElement('label');
+                        label.className = 'option-container';
+                        const radio = document.createElement('input');
+                        radio.type = 'radio';
+                        radio.name = `pq_${globalIndex}`;
+                        radio.value = optIdx;
+                        const span = document.createElement('span');
+                        span.innerHTML = opt;
+                        label.appendChild(radio);
+                        label.appendChild(span);
+                        optionsDiv.appendChild(label);
+                        optionContainers.push(label);
+                    });
+                    questionDiv.appendChild(optionsDiv);
+                }
+
+                // Action buttons
+                const actionRow = document.createElement('div');
+                actionRow.className = 'action-buttons';
+
+                
+                const videoSolutionBtn = document.createElement('button');
+                videoSolutionBtn.textContent = 'Video Solution';
+                videoSolutionBtn.className = 'action-btn video-solution-btn';
+
+                if (!isSubjective) {
+                    submitBtn = document.createElement('button');
+                    submitBtn.textContent = 'Submit';
+                    submitBtn.className = 'action-btn submit-btn';
+                    actionRow.appendChild(submitBtn);
+                }
+                
+                actionRow.appendChild(videoSolutionBtn);
+
+                const textSolutionBtn = document.createElement('button');
+                textSolutionBtn.innerHTML = `<svg style="width:22px;height:22px;color:white;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.2));" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z"/></svg>`;
+                textSolutionBtn.className = 'btn-gold-text-solution';
+                textSolutionBtn.title = 'Text Solution';
+                actionRow.appendChild(textSolutionBtn);
+                questionDiv.appendChild(actionRow);
+
+                // Correct answer box (objective only)
+                if (!isSubjective) {
+                    correctAnswerBox = document.createElement('div');
+                    correctAnswerBox.className = 'correct-answer-box';
+                    const correctLabel = document.createElement('span');
+                    correctLabel.className = 'correct-answer-label';
+                    correctLabel.textContent = 'Correct Answer:';
+                    const correctAnswerSpan = document.createElement('span');
+                    correctAnswerSpan.innerHTML = formattedOptions[q.correctIndex] || 'N/A';
+                    correctAnswerBox.appendChild(correctLabel);
+                    correctAnswerBox.appendChild(correctAnswerSpan);
+                    questionDiv.appendChild(correctAnswerBox);
+                }
+
+                // Text solution container
+                const textSolutionContainer = document.createElement('div');
+                textSolutionContainer.className = 'solution-container';
+                if (formattedSolutionText) {
+                    const textBox = document.createElement('div');
+                    textBox.className = 'solution-box';
+                    const solutionPara = document.createElement('p');
+                    solutionPara.innerHTML = formattedSolutionText;
+                    textBox.appendChild(solutionPara);
+                    if (q.solutionImageUrl) {
+                        const img = document.createElement('img');
+                        img.src = q.solutionImageUrl;
+                        img.alt = 'Solution illustration';
+                        img.style.maxWidth = '100%';
+                        img.style.marginTop = '10px';
+                        img.style.borderRadius = '4px';
+                        textBox.appendChild(img);
+                    }
+                    textSolutionContainer.appendChild(textBox);
+                    const aiNotice = document.createElement('div');
+                    aiNotice.className = 'p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg shadow-sm mt-3';
+                    aiNotice.innerHTML = '<p class="text-sm leading-relaxed text-red-900 font-medium"><span class="font-bold uppercase tracking-wide mr-1">Notice:</span>This solution is AI-generated. It may contain errors—verify before relying on it.</p>';
+                    textSolutionContainer.appendChild(aiNotice);
+                }
+                questionDiv.appendChild(textSolutionContainer);
+
+                // Video solution container
+                const videoSolutionContainer = document.createElement('div');
+                videoSolutionContainer.className = 'solution-container';
+                if (q.solutionVideoUrl) {
+                    const videoElem = createVideoElement(q.solutionVideoUrl);
+                    if (videoElem) videoSolutionContainer.appendChild(videoElem);
+                }
+                questionDiv.appendChild(videoSolutionContainer);
+
+                // Submit logic (objective)
+                if (!isSubjective) {
+                    let submitted = false;
+                    
+                    videoSolutionBtn.disabled = true;
+                    textSolutionBtn.disabled = true;
+                    submitBtn.onclick = () => {
+                        if (submitted) return;
+                        const selectedRadio = document.querySelector(`input[name="pq_${globalIndex}"]:checked`);
+                        if (!selectedRadio) { alert('Please select an answer'); return; }
+                        const selectedIndex = parseInt(selectedRadio.value);
+                        const isCorrect = (selectedIndex === q.correctIndex);
+                        optionContainers.forEach((container, i) => {
+                            if (i === q.correctIndex) {
+                                container.classList.add('correct-bg');
+                            } else if (i === selectedIndex) {
+                                container.classList.add('wrong-bg');
+                            }
+                        });
+                        if (correctAnswerBox) correctAnswerBox.classList.add('visible');
+                        
+                        if (q.solutionVideoUrl) videoSolutionBtn.disabled = false;
+                        if (q.solutionText) textSolutionBtn.disabled = false;
+                        submitted = true;
+                        submitBtn.disabled = true;
+                    };
+                } else {
+                    
+                    videoSolutionBtn.disabled = false;
+                    if (q.solutionText) textSolutionBtn.disabled = false;
+                }
+
+                // Solution toggle logic
+                
+                videoSolutionBtn.onclick = () => {
+                    const wasVisible = videoSolutionContainer.classList.contains('visible');
+                    videoSolutionContainer.classList.toggle('visible', !wasVisible);
+                    if (!wasVisible) textSolutionContainer.classList.remove('visible');
+                };
+
+                textSolutionBtn.onclick = () => {
+                    const wasVisible = textSolutionContainer.classList.contains('visible');
+                    textSolutionContainer.classList.toggle('visible', !wasVisible);
+                    if (!wasVisible) videoSolutionContainer.classList.remove('visible');
+                };
+
+                renderMathInElementWithDelay(questionDiv);
+                return questionDiv;
+            }
+
+            function appendQuestions(questions) {
+                const container = document.getElementById('questions-container');
+                const fragment = document.createDocumentFragment();
+                questions.forEach(q => {
+                    practiceQuestionCount++;
+                    fragment.appendChild(createQuestionElement(q, practiceQuestionCount));
+                });
+                container.appendChild(fragment);
+            }
+
+            // ---------- PRACTICE: VIEW TOGGLE ----------
+            function showPracticeView() {
+                if (!currentClassId || !currentSubjectId || !currentChapterId) {
+                    alert('Please select a Class, Subject, and Chapter before opening Practice.');
+                    return;
+                }
+                practiceMode = true;
+
+                // Hide posts, show practice
+                postsGrid.style.display = 'none';
+                document.getElementById('feed-section-header').classList.add('visible');
+                document.getElementById('practice-section').classList.add('visible');
+                document.getElementById('practice-error').style.display = 'none';
+                document.getElementById('practice-empty').style.display = 'none';
+
+                // Reset and fetch
+                practiceCursor = null;
+                practiceHasMore = true;
+                practiceLoading = false;
+                practiceQuestionCount = 0;
+                document.getElementById('questions-container').innerHTML =
+                    `<div class="loader-grid col-span-full"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>`;
+
+                fetchQuestionsPage(true);
+            }
+
+            function showLecturesView() {
+                practiceMode = false;
+
+                // Hide practice, show posts
+                document.getElementById('practice-section').classList.remove('visible');
+                postsGrid.style.display = '';
+                updateFeedSectionHeader();
+                loadPostsForCurrentChapter();
+            }
+
+            window.copyChapterLink = function() {
+                if (!currentClassId || !currentSubjectId || !currentChapterId) return;
+                const url = new URL(window.location.href);
+                url.searchParams.set('classId', currentClassId);
+                url.searchParams.set('subjectId', currentSubjectId);
+                url.searchParams.set('chapterId', currentChapterId);
+                navigator.clipboard.writeText(url.toString()).then(() => {
+                    const btn = document.getElementById('copy-link-btn');
+                    const icon = btn.querySelector('i');
+                    icon.className = 'fas fa-check text-sm';
+                    setTimeout(() => { icon.className = 'fas fa-link text-sm'; }, 1500);
+                    let toast = document.getElementById('copy-toast');
+                    if (!toast) {
+                        toast = document.createElement('div');
+                        toast.id = 'copy-toast';
+                        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1e293b;color:white;padding:10px 24px;border-radius:9999px;font-size:0.85rem;font-weight:600;font-family:Montserrat,sans-serif;z-index:99999;opacity:0;transition:opacity 0.3s ease;pointer-events:none;white-space:nowrap;';
+                        document.body.appendChild(toast);
+                    }
+                    toast.textContent = '🔗 Link Copied!';
+                    toast.style.opacity = '1';
+                    setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+                }).catch(() => {
+                    alert('Could not copy. Please copy the URL manually.');
+                });
+            };
+
+            // ---------- PRACTICE: INFINITE SCROLL ----------
+            window.addEventListener('scroll', () => {
+                if (!practiceMode) return;
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const windowHeight = window.innerHeight;
+                const documentHeight = document.documentElement.scrollHeight;
+                if (scrollTop + windowHeight >= documentHeight - 300) {
+                    fetchQuestionsPage(false);
+                }
+            });
+            
+            async function loadPostsForCurrentChapter() {
+                postsGrid.innerHTML = `<div class="loader-grid col-span-full"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>`;
+                
+                try {
+                    let posts;
+                    if (currentChapterId) {
+                        posts = await fetchPostsByChapter(currentChapterId);
+                    } else {
+                        posts = await fetchRecentPosts();
+                    }
+                    renderPosts(posts);
+                } catch (error) {
+                    postsGrid.innerHTML = `<div class="error-message col-span-full">⚠️ Failed to load lessons. Please try again.</div>`;
+                }
+            }
+
+            // ---------- COURSE/SUBJECT UI BUILDERS ----------
+            function renderCourseSelect(preSelectId = null) {
+                const options = classesData.map(c => ({ value: c.classId, label: c.className }));
+                // CHANGE 3: no pre-selection, placeholder changed
+                const selectEl = buildCustomSelect(options, '--- Select Course ---', preSelectId, (classId) => {
+                    currentClassId = classId;
+                    // Find selected class and repopulate subjects without auto-selection
+                    const selectedClass = classesData.find(c => c.classId === classId);
+                    renderSubjectSelect(selectedClass ? selectedClass.subjects : []);
+                    // Reset chapter dropdown to empty/placeholder, do NOT auto-select subject
+                    currentSubjectId = null;
+                    repopulateChapterDropdown([]);
+                    // Do NOT call resetAndReloadAfterSubjectChange here; wait for subject selection
+                });
+                courseWrapper.innerHTML = '';
+                courseWrapper.appendChild(selectEl);
+            }
+
+            function renderSubjectSelect(subjects, preSelectId = null) {
+                const options = subjects.map(s => ({ value: s.subjectId, label: s.subjectName }));
+                // CHANGE 3: no pre-selection, placeholder changed
+                const selectEl = buildCustomSelect(options, '--- Select Subject ---', preSelectId, (subjectId) => {
+                    currentSubjectId = subjectId;
+                    // Only now reload chapters and posts
+                    resetAndReloadAfterSubjectChange();
+                });
+                subjectWrapper.innerHTML = '';
+                subjectWrapper.appendChild(selectEl);
+            }
+
+            async function resetAndReloadAfterSubjectChange() {
+                currentChapterId = null;
+                selectedValueSpan.innerText = '--- Select Chapter ---';
+                updateFeedSectionHeader();
+                const chapters = await fetchChapters();
+                repopulateChapterDropdown(chapters);
+                await loadPostsForCurrentChapter();
+            }
+
+            function updateFeedSectionHeader() {
+                const header = document.getElementById('feed-section-header');
+                const chapterDiv = document.getElementById('feed-header-chapter');
+                const recentDiv = document.getElementById('feed-header-recent');
+                const chapterText = document.getElementById('feed-chapter-text');
+                const metaText = document.getElementById('feed-meta-text');
+
+                const allSelected = currentClassId && currentSubjectId && currentChapterId;
+
+                if (allSelected) {
+                    // Find class name and subject name from classesData
+                    const selectedClass = classesData.find(c => c.classId === currentClassId);
+                    const className = selectedClass ? selectedClass.className : '';
+                    const selectedSubject = selectedClass
+                        ? (selectedClass.subjects || []).find(s => s.subjectId === currentSubjectId)
+                        : null;
+                    const subjectName = selectedSubject ? selectedSubject.subjectName : '';
+
+                    chapterText.textContent = selectedValueSpan.innerText;
+                    metaText.textContent = className + (subjectName ? '—' + subjectName : '');
+
+                    chapterDiv.style.display = 'block';
+                    recentDiv.style.display = 'none';
+                    header.classList.add('visible');
+                } else if (!currentClassId && !currentSubjectId && !currentChapterId) {
+                    // Nothing selected — show "Latest Updates"
+                    chapterDiv.style.display = 'none';
+                    recentDiv.style.display = 'block';
+                    header.classList.add('visible');
+                } else {
+                    // Partial selection — hide header
+                    header.classList.remove('visible');
+                }
+
+                const copyBtn = document.getElementById('copy-link-btn');
+                if (copyBtn) copyBtn.style.display = allSelected ? 'flex' : 'none';
+            }
+            
+            // ---------- IN-CARD PLAYER (with double-tap modifications) ----------
+            class SimpleYouTubePlayer {
+                constructor(containerElement, videoId) {
+                    this.container = containerElement;
+                    this.videoId = videoId;
+                    this.player = null;
+                    this.updateInterval = null;
+                    this.currentPlaybackRate = 1;
+                    this.playbackRates = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+                    this.uniqueId = 'player-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                    this.doubleTapTimer = null;
+                    this.lastTapTime = 0;
+                    this.init();
+                }
+
+                init() {
+                    this.container.innerHTML = `
+                        <div class="video-player-container" id="${this.uniqueId}">
+                            <div class="double-tap-indicator double-tap-left"><div class="double-tap-text">-10s</div></div>
+                            <div class="double-tap-indicator double-tap-right"><div class="double-tap-text">+20s</div></div>
+                            <div class="youtube-iframe-wrapper"></div>
+                            <div class="video-overlay">
+                                <div class="modern-control-bar">
+                                    <div class="top-progress-container">
+                                        <div class="progress-track"></div>
+                                        <div class="progress-thumb"></div>
+                                    </div>
+                                    <div class="controls-row">
+                                        <div class="left-controls">
+                                            <button class="control-btn play-pause-btn">
+                                                <svg class="play-icon" width="24" height="24" fill="currentColor" viewBox="0 0 512 512"><path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM188.3 147.1c7.6-4.2 16.8-4.1 24.3 .5l144 88c7.1 4.4 11.5 12.1 11.5 20.5s-4.4 16.1-11.5 20.5l-144 88c-7.4 4.5-16.7 4.7-24.3 .5s-12.3-12.2-12.3-20.9V168c0-8.7 4.7-16.7 12.3-20.9z"/></svg>
+                                                <svg class="pause-icon" style="display:none;" width="24" height="24" fill="currentColor" viewBox="0 0 512 512"><path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm224-72V328c0 13.3-10.7 24-24 24s-24-10.7-24-24V184c0-13.3 10.7-24 24-24s24 10.7 24 24zm112 0V328c0 13.3-10.7 24-24 24s-24-10.7-24-24V184c0-13.3 10.7-24 24-24s24 10.7 24 24z"/></svg>
+                                            </button>
+                                        </div>
+                                        <div class="center-controls"><span class="time-display">0:00 / 0:00</span></div>
+                                        <div class="right-controls">
+                                            <button class="control-btn speed-btn">1x</button>
+                                            <button class="control-btn volume-btn"><i class="fas fa-volume-up"></i></button>
+                                            <button class="control-btn fullscreen-btn"><i class="fas fa-expand"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="video-loading" style="display:none;"><div class="video-loading-spinner"></div><span>Loading video...</span></div>
+                            </div>
+                        </div>
+                    `;
+
+                    const iframe = document.createElement('iframe');
+                    iframe.id = `yt-${this.uniqueId}`;
+                    iframe.width = '100%';
+                    iframe.height = '100%';
+                    iframe.src = `https://www.youtube.com/embed/${this.videoId}?enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}&controls=0&disablekb=1&modestbranding=1&fs=0&rel=0&iv_load_policy=3&playsinline=1&autoplay=0`;
+                    iframe.frameBorder = '0';
+                    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+                    iframe.style.pointerEvents = 'none';
+
+                    const wrapper = this.container.querySelector('.youtube-iframe-wrapper');
+                    if (wrapper) wrapper.appendChild(iframe);
+
+                    this.loadYouTubeAPI().then(() => this.initializePlayer()).catch(err => {
+                        console.error('YouTube API load error:', err);
+                    });
+                }
+
+                loadYouTubeAPI() {
+                    return new Promise((resolve, reject) => {
+                        if (window.YT && window.YT.Player) return resolve();
+                        if (window.youtubeAPILoading) {
+                            const check = setInterval(() => {
+                                if (window.YT && window.YT.Player) { clearInterval(check); resolve(); }
+                            }, 100);
+                            setTimeout(() => { clearInterval(check); if (!window.YT) reject('Timeout'); }, 15000);
+                            return;
+                        }
+                        window.youtubeAPILoading = true;
+                        const tag = document.createElement('script');
+                        tag.src = 'https://www.youtube.com/iframe_api';
+                        tag.onerror = () => { window.youtubeAPILoading = false; reject('Script load failed'); };
+                        document.head.appendChild(tag);
+                        window.onYouTubeIframeAPIReady = () => {
+                            window.youtubeAPILoading = false;
+                            resolve();
+                        };
+                    });
+                }
+
+                initializePlayer() {
+                    const iframe = this.container.querySelector(`#yt-${this.uniqueId}`);
+                    if (!iframe) return;
+
+                    try {
+                        this.player = new YT.Player(iframe.id, {
+                            events: {
+                                onReady: (e) => this.onPlayerReady(e),
+                                onStateChange: (e) => this.onStateChange(e),
+                                onError: (e) => console.error('YT error:', e.data),
+                                onPlaybackRateChange: (e) => {
+                                    this.currentPlaybackRate = e.data;
+                                    const btn = this.container.querySelector('.speed-btn');
+                                    if (btn) btn.textContent = `${this.currentPlaybackRate}x`;
+                                }
+                            },
+                            playerVars: {
+                                autoplay: 0, controls: 0, disablekb: 1,
+                                enablejsapi: 1, fs: 0, iv_load_policy: 3,
+                                modestbranding: 1, playsinline: 1, rel: 0,
+                                origin: window.location.origin
+                            }
+                        });
+                        this.setupControls();
+                    } catch (err) {
+                        console.error('Player init error:', err);
+                        setTimeout(() => this.initializePlayer(), 1000);
+                    }
+                }
+
+                onPlayerReady(event) {
+                    event.target.setVolume(100);
+                    event.target.setPlaybackRate(this.currentPlaybackRate);
+                    event.target.playVideo();
+                    this.startUpdateInterval();
+                }
+
+                onStateChange(event) {
+                    const playIcon = this.container.querySelector('.play-icon');
+                    const pauseIcon = this.container.querySelector('.pause-icon');
+                    if (event.data === YT.PlayerState.PLAYING) {
+                        if (playIcon) playIcon.style.display = 'none';
+                        if (pauseIcon) pauseIcon.style.display = 'block';
+                        this.hideControlsAfterDelay();
+                    } else {
+                        if (playIcon) playIcon.style.display = 'block';
+                        if (pauseIcon) pauseIcon.style.display = 'none';
+                    }
+                }
+
+                setupControls() {
+                    const c = this.container;
+                    const playBtn = c.querySelector('.play-pause-btn');
+                    if (playBtn) playBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (!this.player) return;
+                        this.player.getPlayerState() === YT.PlayerState.PLAYING
+                            ? this.player.pauseVideo()
+                            : this.player.playVideo();
+                    });
+
+                    const progressBar = c.querySelector('.top-progress-container');
+                    if (progressBar) {
+                        const seek = (clientX) => {
+                            if (!this.player) return;
+                            const rect = progressBar.getBoundingClientRect();
+                            const pct = Math.max(0, Math.min((clientX - rect.left) / rect.width, 1));
+                            this.player.seekTo(pct * this.player.getDuration(), true);
+                        };
+                        progressBar.addEventListener('click', (e) => { e.stopPropagation(); seek(e.clientX); });
+                        progressBar.addEventListener('touchstart', (e) => { e.stopPropagation(); seek(e.touches[0].clientX); }, { passive: true });
+                        progressBar.addEventListener('touchmove', (e) => { e.stopPropagation(); seek(e.touches[0].clientX); }, { passive: true });
+                    }
+
+                    const volBtn = c.querySelector('.volume-btn');
+                    if (volBtn) volBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (!this.player) return;
+                        const muted = this.player.getVolume() === 0;
+                        this.player.setVolume(muted ? 100 : 0);
+                        volBtn.innerHTML = muted ? '<i class="fas fa-volume-up"></i>' : '<i class="fas fa-volume-mute"></i>';
+                    });
+
+                    const speedBtn = c.querySelector('.speed-btn');
+                    if (speedBtn) speedBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (!this.player) return;
+                        const idx = this.playbackRates.indexOf(this.currentPlaybackRate);
+                        this.currentPlaybackRate = this.playbackRates[(idx + 1) % this.playbackRates.length];
+                        this.player.setPlaybackRate(this.currentPlaybackRate);
+                        speedBtn.textContent = `${this.currentPlaybackRate}x`;
+                    });
+
+                    const fsBtn = c.querySelector('.fullscreen-btn');
+                    if (fsBtn) fsBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const target = c.querySelector('.video-player-container');
+                        if (!document.fullscreenElement) {
+                            (target.requestFullscreen || target.webkitRequestFullscreen).call(target);
+                            fsBtn.innerHTML = '<i class="fas fa-compress"></i>';
+                        } else {
+                            (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+                            fsBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                        }
+                    });
+
+                    const overlay = c.querySelector('.video-overlay');
+                    if (overlay) {
+                        const show = () => {
+                            const bar = c.querySelector('.modern-control-bar');
+                            if (bar) bar.classList.add('visible');
+                        };
+                        overlay.addEventListener('mouseenter', () => { show(); this.hideControlsAfterDelay(); });
+                        overlay.addEventListener('mousemove', () => { show(); this.hideControlsAfterDelay(); });
+                        overlay.addEventListener('mouseleave', () => this.hideControlsAfterDelay());
+                        overlay.addEventListener('touchstart', (e) => {
+    const bar = c.querySelector('.modern-control-bar');
+    if (bar && bar.classList.contains('visible')) {
+        bar.classList.remove('visible');
+    } else {
+        show();
+        this.hideControlsAfterDelay();
+    }
+}, { passive: true });
+                        
+                        // CHANGE 5: Double-tap handling with new seek deltas (-10 min, +20 min)
+                        overlay.addEventListener('touchstart', (e) => {
+                            const touch = e.touches[0];
+                            const rect = overlay.getBoundingClientRect();
+                            const x = touch.clientX - rect.left;
+                            const isLeft = x < rect.width / 2;
+                            const now = Date.now();
+                            const doubleTapDelay = 300;
+                            
+                            if (now - this.lastTapTime < doubleTapDelay) {
+                                // Double tap detected
+                                e.preventDefault();
+                                if (this.player && this.player.getDuration) {
+                                    const currentTime = this.player.getCurrentTime();
+                                    const newTime = isLeft 
+                                        ? Math.max(0, currentTime - 10)    // -10 minutes
+                                        : Math.min(this.player.getDuration(), currentTime + 20); // +20 minutes
+                                    this.player.seekTo(newTime, true);
+                                    
+                                    // Show indicator
+                                    const indicator = isLeft 
+                                        ? c.querySelector('.double-tap-left') 
+                                        : c.querySelector('.double-tap-right');
+                                    if (indicator) {
+                                        indicator.classList.add('show');
+                                        setTimeout(() => indicator.classList.remove('show'), 500);
+                                    }
+                                }
+                                clearTimeout(this.doubleTapTimer);
+                                this.lastTapTime = 0;
+                            } else {
+                                this.lastTapTime = now;
+                                this.doubleTapTimer = setTimeout(() => {
+                                    this.lastTapTime = 0;
+                                }, doubleTapDelay);
+                            }
+                        }, { passive: false });
+                    }
+                }
+
+                hideControlsAfterDelay() {
+                    const bar = this.container.querySelector('.modern-control-bar');
+                    if (!bar) return;
+                    setTimeout(() => {
+                        if (this.player && this.player.getPlayerState() === YT.PlayerState.PLAYING) {
+                            bar.classList.remove('visible');
+                        }
+                    }, 3000);
+                }
+
+                startUpdateInterval() {
+                    if (this.updateInterval) clearInterval(this.updateInterval);
+                    this.updateInterval = setInterval(() => {
+                        if (!this.player) return;
+                        try {
+                            const cur = this.player.getCurrentTime() || 0;
+                            const dur = this.player.getDuration() || 0;
+                            const pct = dur > 0 ? (cur / dur) * 100 : 0;
+                            const track = this.container.querySelector('.progress-track');
+                            const thumb = this.container.querySelector('.progress-thumb');
+                            if (track) track.style.width = pct + '%';
+                            if (thumb) thumb.style.left = pct + '%';
+                            const time = this.container.querySelector('.time-display');
+                            if (time) {
+                                const fmt = s => isNaN(s) ? '0:00' : `${Math.floor(s/60)}:${Math.floor(s%60).toString().padStart(2,'0')}`;
+                                time.textContent = `${fmt(cur)} / ${fmt(dur)}`;
+                            }
+                        } catch (e) {}
+                    }, 500);
+                }
+
+                destroy() {
+                    if (this.updateInterval) clearInterval(this.updateInterval);
+                    if (this.doubleTapTimer) clearTimeout(this.doubleTapTimer);
+                    try { if (this.player && this.player.destroy) this.player.destroy(); } catch (e) {}
+                }
+            }
+
+            // ---------- RENDERING ----------
+            function renderPosts(posts) {
+                if (activePlayerInstance) {
+                    activePlayerInstance.destroy();
+                    activePlayerInstance = null;
+                }
+
+                if (!posts || posts.length === 0) {
+                    postsGrid.innerHTML = `<div class="empty-state col-span-full">📚 No lessons found.</div>`;
+                    return;
+                }
+
+                const fragment = document.createDocumentFragment();
+                posts.forEach(post => {
+                    const card = createPostCard(post);
+                    fragment.appendChild(card);
+                });
+                postsGrid.innerHTML = '';
+                postsGrid.appendChild(fragment);
+            }
+
+            function createPostCard(post) {
+                const article = document.createElement('article');
+                article.className = 'bg-white rounded-xl shadow-md overflow-hidden card-hover border border-gray-100 flex flex-col';
+
+                const thumbnailUrl = getThumbnailUrl(post.videoUrl, post.thumbnailUrl);
+                const tutorName = post.tutorName || 'Instructor';
+                const formattedDate = formatDate(post.createdAt);
+                const postTitle = post.postTitle || 'Untitled Lesson';
+                const postSubtitle = post.postSubtitle || '';
+
+                const thumbDiv = document.createElement('div');
+                thumbDiv.className = 'relative h-48 bg-gray-200 overflow-hidden';
+                const img = document.createElement('img');
+                img.src = thumbnailUrl;
+                img.alt = postTitle;
+                img.className = 'w-full h-full object-cover';
+                img.loading = 'lazy';
+                img.onerror = () => { img.src = 'https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?q=80&w=1200&auto=format&fit=crop'; };
+                thumbDiv.appendChild(img);
+
+                const playBtn = document.createElement('div');
+                playBtn.className = 'play-overlay-btn';
+                playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                playBtn.setAttribute('aria-label', 'Play video');
+                
+                const launchPlayer = (e) => {
+                    e.stopPropagation();
+                    const videoId = extractYouTubeID(post.videoUrl);
+                    if (!videoId) {
+                        alert('Invalid video URL');
+                        return;
+                    }
+                    if (activePlayerInstance) {
+                        activePlayerInstance.destroy();
+                        activePlayerInstance = null;
+                    }
+                    activePlayerInstance = new SimpleYouTubePlayer(thumbDiv, videoId);
+                };
+
+                playBtn.onclick = launchPlayer;
+                thumbDiv.appendChild(playBtn);
+                article.appendChild(thumbDiv);
+
+                const bodyDiv = document.createElement('div');
+                bodyDiv.className = 'p-5 flex-grow';
+
+                const metaRow = document.createElement('div');
+                metaRow.className = 'flex justify-between items-center mb-3';
+                const tutorBadge = document.createElement('span');
+                tutorBadge.className = 'text-xs font-semibold px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full uppercase';
+                tutorBadge.textContent = tutorName;
+                const dateSpan = document.createElement('span');
+                dateSpan.className = 'text-xs font-medium px-2 py-1 bg-gray-100 text-gray-500 rounded-full';
+                dateSpan.textContent = formattedDate;
+                metaRow.appendChild(tutorBadge);
+                metaRow.appendChild(dateSpan);
+                bodyDiv.appendChild(metaRow);
+
+                const titleEl = document.createElement('h3');
+                titleEl.className = 'text-lg font-bold text-gray-800 mb-2 leading-tight';
+                titleEl.textContent = postTitle;
+                bodyDiv.appendChild(titleEl);
+
+                const subtitleEl = document.createElement('p');
+                subtitleEl.className = 'text-gray-600 text-sm line-clamp-2';
+                subtitleEl.textContent = postSubtitle;
+                bodyDiv.appendChild(subtitleEl);
+
+                article.appendChild(bodyDiv);
+
+                const footerDiv = document.createElement('div');
+                footerDiv.className = 'p-5 pt-0 border-t border-gray-50 mt-auto';
+                const watchBtn = document.createElement('button');
+                watchBtn.className = 'w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg transition-colors';
+                watchBtn.textContent = 'Watch Lecture';
+                watchBtn.onclick = launchPlayer;
+                footerDiv.appendChild(watchBtn);
+                article.appendChild(footerDiv);
+
+                return article;
+            }
+
+            // ---------- INITIAL LOAD (CHANGE 2 applied) ----------
+            async function initialize() {
+                try {
+                    // CHANGE 2: Fetch only classes and recent posts in parallel, no chapters
+                    const [classes, recentPosts] = await Promise.all([
+                        fetchClasses(),
+                        fetchRecentPosts().catch(() => [])
+                    ]);
+                    
+                    classesData = classes;
+                    
+                    if (paramClassId && paramSubjectId && paramChapterId) {
+                        currentClassId = paramClassId;
+                        currentSubjectId = paramSubjectId;
+                        const selectedClass = classesData.find(c => c.classId === paramClassId);
+                        renderCourseSelect(paramClassId);
+                        renderSubjectSelect(selectedClass ? selectedClass.subjects : [], paramSubjectId);
+                        const chapters = await fetchChapters();
+                        populateDropdown(chapters);
+                        const matchedChapter = chapters.find(ch => ch.chapterId === paramChapterId);
+                        if (matchedChapter) {
+                            selectedValueSpan.innerText = matchedChapter.chapterName;
+                        }
+                        currentChapterId = paramChapterId;
+                        updateFeedSectionHeader();
+                        showPracticeView();
+                    } else {
+                        currentClassId = null;
+                        currentSubjectId = null;
+                        renderCourseSelect();
+                        renderSubjectSelect([]);
+                        populateDropdown([]);
+                        renderPosts(recentPosts);
+                        updateFeedSectionHeader();
+                    }
+                } catch (err) {
+                    console.error('Init error:', err);
+                    postsGrid.innerHTML = `<div class="error-message col-span-full">Failed to load initial data. Please refresh.</div>`;
+                }
+            }
+
+            initialize();
+            // ---------- CAPSULE CLICK HANDLERS ----------
+            document.getElementById('capsule-practice').addEventListener('click', showPracticeView);
+            document.getElementById('capsule-lectures').addEventListener('click', showLecturesView);
+        })();
+    </script>
+</body>
+</html>
