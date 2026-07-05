@@ -776,22 +776,6 @@ html::-webkit-scrollbar {
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen p-4 md:p-12 font-sans text-gray-900">
-
-    <div id="desktop-block-message" style="display:none; position:fixed; inset:0; background:#111827; color:#fff; z-index:99999; align-items:center; justify-content:center; text-align:center; font-family:sans-serif; padding:24px;">
-    <div>
-        <h1 style="font-size:1.5rem; font-weight:800; margin-bottom:12px;">Only available on mobile device browser</h1>
-        <p style="color:#9ca3af; font-size:0.95rem;">Currently not available on desktop</p>
-    </div>
-</div>
-
-<script>
-    function checkDeviceView() {
-        const isDesktop = window.innerWidth > 768;
-        document.getElementById('desktop-block-message').style.display = isDesktop ? 'flex' : 'none';
-    }
-    checkDeviceView();
-    window.addEventListener('resize', checkDeviceView);
-</script>
     
     <!-- Header Section -->
     <header class="max-w-6xl mx-auto mb-8 border-l-4 border-indigo-600 pl-6 py-2">
