@@ -84,7 +84,7 @@ app.use(cors({
     if (allowedOrigins.includes(origin)) return callback(null, true);
     callback(new Error(`CORS: Origin "${origin}" is not allowed`));
   },
-  allowedHeaders: ['Content-Type', 'X-Admin-Secret'],
+  allowedHeaders: ['Content-Type', 'X-Admin-Secret', 'Authorization'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
 }));
 
@@ -417,7 +417,70 @@ function requireAdminSecret(req, res, next) {
 function requireDb() {
   if (!db) throw new Error('BAD_REQUEST: Database not available');
 }
+// ─────────────────────────────────────────────
+// Auth middleware — verifies Firebase ID token
+// Expects: Authorization: Bearer <idToken>
+// ─────────────────────────────────────────────
+async function verifyToken(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization || '';
+    const [scheme, token] = authHeader.split(' ');
 
+    if (scheme !== 'Bearer' || !token) {
+      return res.status(401).json({ error: 'Missing or invalid Authorization header' });
+    }
+
+    const decoded = await admin.auth().verifyIdToken(token);
+
+    if (!decoded.email) {
+      return res.status(401).json({ error: 'Token does not contain an email' });
+    }
+
+    req.user = { uid: decoded.uid, email: decoded.email };
+    next();
+  } catch (err) {
+    logger.warn({ err: err.message }, 'Token verification failed');
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+}
+
+// ─────────────────────────────────────────────
+// Permission middleware — checks studentEnrollments
+// Must run AFTER verifyToken (needs req.user.email)
+// Must run on routes that already have classId + subjectId in req.query
+// ─────────────────────────────────────────────
+async function checkEnrollment(req, res, next) {
+  try {
+    requireDb();
+
+    const { classId, subjectId } = req.query;
+    if (!classId || !subjectId) {
+      return res.status(400).json({ error: 'classId and subjectId are required' });
+    }
+
+    const snap = await db.collection('studentEnrollments')
+      .where('email', '==', req.user.email)
+      .where('enrolledClassId', '==', classId)
+      .where('enrolledSubjectId', '==', subjectId)
+      .limit(1)
+      .get();
+
+    if (snap.empty) {
+      return res.status(403).json({ error: 'Not enrolled for this class/subject' });
+    }
+
+    const enrollment = snap.docs[0].data();
+    const expiredAt  = enrollment.expiredAt?.toDate?.() ?? new Date(enrollment.expiredAt);
+
+    if (!(expiredAt instanceof Date) || isNaN(expiredAt.getTime()) || expiredAt.getTime() < Date.now()) {
+      return res.status(403).json({ error: 'Enrollment has expired' });
+    }
+
+    next();
+  } catch (err) {
+    handleError(err, res);
+  }
+}
 // ─────────────────────────────────────────────
 // Reference validation helpers
 // These hit Firestore to confirm parent documents exist
@@ -534,7 +597,7 @@ app.get('/chapters', async (req, res) => {
 //   ordered oldest → newest (ascending createdAt).
 //   Also used by admin to preview posts before editing/deleting.
 // ─────────────────────────────────────────────
-app.get('/posts', async (req, res) => {
+app.get('/posts', verifyToken, checkEnrollment, async (req, res) => {
   try {
     const result = await QUEUES.read.add(async () => {
       requireDb();
@@ -1276,7 +1339,7 @@ app.delete(
 //    400 – missing / invalid query params, or invalid cursor
 //    503 – queue full
 // ─────────────────────────────────────────────
-app.get('/questions', async (req, res) => {
+app.get('/questions', verifyToken, checkEnrollment, async (req, res) => {
   try {
     const result = await QUEUES.read.add(async () => {
       requireDb();
