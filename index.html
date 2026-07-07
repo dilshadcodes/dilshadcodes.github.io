@@ -770,36 +770,44 @@ html::-webkit-scrollbar {
      
         /* ----- SIDE PANEL LAYOUT (large screens only, 1024px+) ----- */
         @media (min-width: 1024px) {
-            .layout-wrap {
-                display: flex;
-                align-items: flex-start;
-                gap: 32px;
-                max-width: 96rem;
-                margin: 0 auto;
-            }
-            .side-panel {
-                width: 25%;
-                flex-shrink: 0;
-                position: sticky;
-                top: 24px;
-                max-height: calc(100vh - 48px);
-                overflow-y: auto;
-                scrollbar-width: none;
-                -ms-overflow-style: none;
-            }
-            .side-panel::-webkit-scrollbar { display: none; }
-            .main-content {
-                width: 75%;
-                min-width: 0;
-            }
-            .side-panel .filter-blue-bg .flex-col.md\:flex-row {
-                flex-direction: column;
-            }
-        }
+    html, body {
+        height: 100%;
+        overflow: hidden;
+    }
+    .layout-wrap {
+        display: flex;
+        align-items: flex-start;
+        gap: 32px;
+        max-width: 96rem;
+        margin: 0 auto;
+        height: calc(100vh - 96px); /* matches body's md:p-12 top+bottom padding */
+    }
+    .side-panel {
+        width: 25%;
+        flex-shrink: 0;
+        height: 100%;
+        overflow-y: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    .side-panel::-webkit-scrollbar { display: none; }
+    .main-content {
+        width: 75%;
+        min-width: 0;
+        height: 100%;
+        overflow-y: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    .main-content::-webkit-scrollbar { display: none; }
+    .side-panel .filter-blue-bg .flex-col.md\:flex-row {
+        flex-direction: column;
+    }
+}
         
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen p-4 md:p-12 font-sans text-gray-900">
+<body class="bg-gray-50 min-h-screen p-4 pb-2 md:p-12 md:pb-6 font-sans text-gray-900">
 
 <div class="layout-wrap">
 <div class="side-panel">
