@@ -1165,12 +1165,13 @@ html::-webkit-scrollbar {
                     });
                 }
                 
-               trigger.addEventListener('click', (e) => {
+              trigger.addEventListener('click', (e) => {
                     e.stopPropagation();
                     closeAllCustomDropdowns();
                     dropdownContainer.classList.remove('dropdown-open');
                     dropdown.classList.add('show');
                     trigger.classList.add('open');
+                    dropdown.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 });
                 
                 wrapper.appendChild(trigger);
@@ -1188,6 +1189,10 @@ html::-webkit-scrollbar {
             // ---------- DROPDOWN LOGIC (existing chapter) ----------
             window.toggleDropdown = function() {
                 dropdownContainer.classList.toggle('dropdown-open');
+                if (dropdownContainer.classList.contains('dropdown-open')) {
+                    const list = dropdownContainer.querySelector('.dropdown-content');
+                    (list || dropdownContainer).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
             };
 
             window.selectItem = function(chapterId, chapterName) {
