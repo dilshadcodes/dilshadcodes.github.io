@@ -1719,16 +1719,25 @@ html::-webkit-scrollbar {
                 });
             };
 
-            // ---------- PRACTICE: INFINITE SCROLL ----------
-            window.addEventListener('scroll', () => {
-                if (!practiceMode) return;
-                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                const windowHeight = window.innerHeight;
-                const documentHeight = document.documentElement.scrollHeight;
-                if (scrollTop + windowHeight >= documentHeight - 300) {
-                    fetchQuestionsPage(false);
-                }
-            });
+            // ---------- PRACTICE: INFINITE SCROLL ---------
+function checkInfiniteScroll(scrollTop, viewHeight, totalHeight) {
+    if (!practiceMode) return;
+    if (scrollTop + viewHeight >= totalHeight - 300) {
+        fetchQuestionsPage(false);
+    }
+}
+
+window.addEventListener('scroll', () => {
+    checkInfiniteScroll(
+        window.pageYOffset || document.documentElement.scrollTop,
+        window.innerHeight,
+        document.documentElement.scrollHeight
+    );
+});
+
+document.querySelector('.main-content').addEventListener('scroll', function () {
+    checkInfiniteScroll(this.scrollTop, this.clientHeight, this.scrollHeight);
+});
             
             async function loadPostsForCurrentChapter() {
                 postsGrid.innerHTML = `<div class="loader-grid col-span-full"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>`;
