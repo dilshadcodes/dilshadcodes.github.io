@@ -18,6 +18,11 @@
   <script src="https://unpkg.com/lucide@latest">
   </script>
 
+  <!-- Firebase (compat SDK) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  
   <script src="https://cdn.tailwindcss.com">
   </script>
   <script>
@@ -977,36 +982,63 @@
       </header>
 
 
-      <!-- PROFILE CARD -->
-      <div onclick="window.open('https://github.com/dilshadcodes?tab=repositories','_blank')" class="bg-white border border-gray-200 rounded-2xl p-6 w-full max-w-sm font-sans relative shadow-lg shadow-gray-400/40 hover:shadow-xl hover:shadow-gray-400/50 transition-all duration-300 mb-6 cursor-pointer">
-        <!-- Status badge -->
-        <div class="absolute top-4 right-4 flex items-center gap-1.5 bg-black rounded-full px-3 py-1.5">
-          <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span class="text-[10px] uppercase tracking-wider text-white">Available</span>
+     <!-- AUTH / PROFILE CARD -->
+      <div class="w-full max-w-sm mb-6">
+
+        <!-- LOGIN / SIGNUP CARD -->
+        <div id="login-card" class="bg-white border border-gray-200 rounded-2xl p-6 w-full font-sans relative shadow-lg shadow-gray-400/40 transition-all duration-300">
+          <div class="flex gap-2 mb-5">
+            <button id="tab-signin" type="button" class="flex-1 py-2 rounded-lg text-sm font-bold bg-indigo-600 text-white transition-colors">Sign In</button>
+            <button id="tab-signup" type="button" class="flex-1 py-2 rounded-lg text-sm font-bold bg-gray-100 text-gray-600 transition-colors">Sign Up</button>
+          </div>
+
+          <form id="signin-form" class="flex flex-col gap-3">
+            <input type="email" id="signin-email" placeholder="Email" required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+            <input type="password" id="signin-password" placeholder="Password" required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+            <p id="signin-error" class="text-xs text-red-600 hidden"></p>
+            <button type="submit" id="signin-submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg transition-colors">Sign In</button>
+          </form>
+
+          <form id="signup-form" class="hidden flex-col gap-3">
+            <input type="text"     id="signup-name"      placeholder="Full name"      required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+            <input type="email"    id="signup-email"     placeholder="Email"          required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+            <input type="tel"      id="signup-contact"   placeholder="Contact number" required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+            <input type="url"      id="signup-photo"     placeholder="Profile photo URL" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+            <textarea              id="signup-about"     placeholder="About you" rows="2" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20"></textarea>
+            <input type="url"      id="signup-instagram" placeholder="Instagram URL" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+            <input type="password" id="signup-password"  placeholder="Set password" required minlength="6" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+            <p id="signup-error" class="text-xs text-red-600 hidden"></p>
+            <button type="submit" id="signup-submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg transition-colors">Create Account</button>
+          </form>
         </div>
 
-        <!-- Identity -->
-        <div class="flex items-center gap-3.5 mb-5">
-          <img src="https://i.postimg.cc/T1LWc0VW/profile-picture.png" alt="Dilshad Alam" loading="lazy" class="w-12 h-12 rounded-full object-cover border-2 border-gray-200">
-          <div>
-            <h4 class="text-base font-bold text-gray-900">Dilshad Alam</h4>
-            <p class="text-sm text-indigo-600 font-medium">dilshadcodes • Mr.</p>
+        <!-- PROFILE CARD (shown after login) -->
+        <div id="profile-card" class="hidden bg-white border border-gray-200 rounded-2xl p-6 w-full font-sans relative shadow-lg shadow-gray-400/40 hover:shadow-xl hover:shadow-gray-400/50 transition-all duration-300">
+          <div id="logout-btn" class="absolute top-4 right-4 flex items-center gap-1.5 bg-black rounded-full px-3 py-1.5 cursor-pointer">
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-[10px] uppercase tracking-wider text-white">Logout</span>
+          </div>
+
+          <div class="flex items-center gap-3.5 mb-5">
+            <img id="profile-photo" src="" alt="Profile" loading="lazy" class="w-12 h-12 rounded-full object-cover border-2 border-gray-200">
+            <div>
+              <h4 id="profile-name" class="text-base font-bold text-gray-900"></h4>
+              <p id="profile-handle" class="text-sm text-indigo-600 font-medium"></p>
+            </div>
+          </div>
+
+          <p id="profile-about" class="text-sm font-semibold text-gray-700 mb-5 leading-relaxed"></p>
+
+          <div class="flex gap-3">
+            <button id="profile-follow-btn" style="border-radius: 9999px; height: 40px; font-size: 0.85rem; background-color: #1e3a8a;" class="flex-1 flex items-center justify-center text-white font-semibold hover:opacity-90 transition-opacity">
+              Follow
+            </button>
+            <button id="profile-connect-btn" style="border-radius: 9999px; height: 40px; font-size: 0.85rem; background-color: #25D366;" class="flex-1 flex items-center justify-center text-white font-semibold hover:opacity-90 transition-opacity">
+              Connect
+            </button>
           </div>
         </div>
 
-        <!-- Tagline -->
-        <p class="text-sm font-semibold text-gray-700 mb-5 leading-relaxed">
-          Computer Engineering — Exploring tech and science
-        </p>
-
-        <div class="flex gap-3">
-          <button onclick="event.stopPropagation(); window.open('https://www.instagram.com/dilshad_almm/','_blank')" style="border-radius: 9999px; height: 40px; font-size: 0.85rem; background-color: #1e3a8a;" class="flex-1 flex items-center justify-center text-white font-semibold hover:opacity-90 transition-opacity">
-            Follow
-          </button>
-          <button onclick="event.stopPropagation(); window.open('https://wa.me/9779823778220','_blank')" style="border-radius: 9999px; height: 40px; font-size: 0.85rem; background-color: #25D366;" class="flex-1 flex items-center justify-center text-white font-semibold hover:opacity-90 transition-opacity">
-            Connect
-          </button>
-        </div>
       </div>
 
       <!-- Course & Subject Selection Section (NEW) -->
@@ -1167,6 +1199,18 @@
 
       // ---------- CONFIGURATION ----------
       const BASE_URL = 'https://tutoriumfree.onrender.com'; // Public API
+      // ---------- FIREBASE INIT ----------
+      const firebaseConfig = {
+        apiKey:            "AIzaSyB7t1epo6Vsi-zhjmFoYEkznUfmAoxfRyY",
+        authDomain:        "tutorup-dilshad.firebaseapp.com",
+        projectId:         "tutorup-dilshad",
+        storageBucket:     "tutorup-dilshad.firebasestorage.app",
+        messagingSenderId: "845385268581",
+        appId:             "1:845385268581:web:8af0729bd46012dc3a758c"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+      const db   = firebase.firestore();
 
       // ---------- VISIT TRACKING ----------
       (async function trackVisit() {
@@ -1213,6 +1257,156 @@
       const courseWrapper = document.getElementById('courseSelectWrapper');
       const subjectWrapper = document.getElementById('subjectSelectWrapper');
 
+      // ---------- AUTH: DOM REFS ----------
+      const loginCard    = document.getElementById('login-card');
+      const profileCard  = document.getElementById('profile-card');
+      const tabSignin    = document.getElementById('tab-signin');
+      const tabSignup    = document.getElementById('tab-signup');
+      const signinForm   = document.getElementById('signin-form');
+      const signupForm   = document.getElementById('signup-form');
+      const signinError  = document.getElementById('signin-error');
+      const signupError  = document.getElementById('signup-error');
+      const signinSubmit = document.getElementById('signin-submit');
+      const signupSubmit = document.getElementById('signup-submit');
+      const logoutBtn    = document.getElementById('logout-btn');
+
+      // ---------- AUTH: TAB TOGGLE ----------
+      tabSignin.addEventListener('click', () => {
+        tabSignin.classList.add('bg-indigo-600', 'text-white');
+        tabSignin.classList.remove('bg-gray-100', 'text-gray-600');
+        tabSignup.classList.add('bg-gray-100', 'text-gray-600');
+        tabSignup.classList.remove('bg-indigo-600', 'text-white');
+        signinForm.classList.remove('hidden');
+        signinForm.classList.add('flex');
+        signupForm.classList.add('hidden');
+        signupForm.classList.remove('flex');
+      });
+      tabSignup.addEventListener('click', () => {
+        tabSignup.classList.add('bg-indigo-600', 'text-white');
+        tabSignup.classList.remove('bg-gray-100', 'text-gray-600');
+        tabSignin.classList.add('bg-gray-100', 'text-gray-600');
+        tabSignin.classList.remove('bg-indigo-600', 'text-white');
+        signupForm.classList.remove('hidden');
+        signupForm.classList.add('flex');
+        signinForm.classList.add('hidden');
+        signinForm.classList.remove('flex');
+      });
+
+      // ---------- AUTH: ERROR MESSAGES ----------
+      function mapAuthError(err) {
+        const code = err && err.code;
+        switch (code) {
+          case 'auth/email-already-in-use': return 'This email is already registered.';
+          case 'auth/invalid-email':        return 'Please enter a valid email address.';
+          case 'auth/weak-password':        return 'Password must be at least 6 characters.';
+          case 'auth/user-not-found':
+          case 'auth/wrong-password':
+          case 'auth/invalid-credential':   return 'Incorrect email or password.';
+          default: return (err && err.message) || 'Something went wrong. Please try again.';
+        }
+      }
+
+      // ---------- AUTH: SIGN IN ----------
+      signinForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        signinError.classList.add('hidden');
+        signinSubmit.disabled = true;
+        signinSubmit.textContent = 'Signing in…';
+        try {
+          const email    = document.getElementById('signin-email').value.trim();
+          const password = document.getElementById('signin-password').value;
+          await auth.signInWithEmailAndPassword(email, password);
+        } catch (err) {
+          signinError.textContent = mapAuthError(err);
+          signinError.classList.remove('hidden');
+        } finally {
+          signinSubmit.disabled = false;
+          signinSubmit.textContent = 'Sign In';
+        }
+      });
+
+      // ---------- AUTH: SIGN UP ----------
+      signupForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        signupError.classList.add('hidden');
+        signupSubmit.disabled = true;
+        signupSubmit.textContent = 'Creating account…';
+        try {
+          const name         = document.getElementById('signup-name').value.trim();
+          const email        = document.getElementById('signup-email').value.trim();
+          const contact      = document.getElementById('signup-contact').value.trim();
+          const photoUrl     = document.getElementById('signup-photo').value.trim();
+          const about        = document.getElementById('signup-about').value.trim();
+          const instagramUrl = document.getElementById('signup-instagram').value.trim();
+          const password     = document.getElementById('signup-password').value;
+
+          if (password.length < 6) throw { code: 'auth/weak-password' };
+
+          const cred = await auth.createUserWithEmailAndPassword(email, password);
+          const user = cred.user;
+
+          await user.updateProfile({ displayName: name, photoURL: photoUrl || null });
+
+          await db.collection('students').doc(user.uid).set({
+            name,
+            email,
+            contactNumber:    contact,
+            profilePhotoUrl:  photoUrl,
+            about,
+            instagramUrl,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        } catch (err) {
+          signupError.textContent = mapAuthError(err);
+          signupError.classList.remove('hidden');
+        } finally {
+          signupSubmit.disabled = false;
+          signupSubmit.textContent = 'Create Account';
+        }
+      });
+
+      // ---------- AUTH: LOGOUT ----------
+      logoutBtn.addEventListener('click', () => auth.signOut());
+
+      // ---------- AUTH: STATE OBSERVER ----------
+      auth.onAuthStateChanged(async (user) => {
+        if (!user) {
+          loginCard.classList.remove('hidden');
+          profileCard.classList.add('hidden');
+          return;
+        }
+        try {
+          const doc  = await db.collection('students').doc(user.uid).get();
+          const data = doc.exists ? doc.data() : {};
+
+          document.getElementById('profile-photo').src =
+            data.profilePhotoUrl || 'https://i.postimg.cc/T1LWc0VW/profile-picture.png';
+          document.getElementById('profile-name').textContent   = data.name || user.displayName || 'Student';
+          document.getElementById('profile-handle').textContent = user.email || '';
+          document.getElementById('profile-about').textContent  = data.about || '';
+
+          document.getElementById('profile-follow-btn').onclick = () => {
+            if (data.instagramUrl) window.open(data.instagramUrl, '_blank');
+          };
+          document.getElementById('profile-connect-btn').onclick = () => {
+            if (data.contactNumber) window.open(`https://wa.me/${data.contactNumber.replace(/\D/g, '')}`, '_blank');
+          };
+
+          loginCard.classList.add('hidden');
+          profileCard.classList.remove('hidden');
+        } catch (err) {
+          console.error('Failed to load profile:', err);
+        }
+      });
+
+      // ---------- AUTH: FETCH HELPER (attaches Bearer token) ----------
+      async function authedFetch(url) {
+        const user = auth.currentUser;
+        if (!user) throw new Error('Not signed in');
+        const token = await user.getIdToken();
+        return fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      }
+      
       // ---------- DISABLE UNWANTED INTERACTIONS ----------
       document.addEventListener('dblclick', e => e.preventDefault());
       document.addEventListener('contextmenu', e => e.preventDefault());
@@ -1440,7 +1634,7 @@
 
       async function fetchPostsByChapter(chapterId) {
         try {
-          const res = await fetch(`${BASE_URL}/posts?classId=${currentClassId}&subjectId=${currentSubjectId}&chapterId=${chapterId}`);
+          const res = await authedFetch(`${BASE_URL}/posts?classId=${currentClassId}&subjectId=${currentSubjectId}&chapterId=${chapterId}`);
           if (!res.ok) throw new Error(`Posts by chapter error: ${res.status}`);
           const data = await res.json();
           return Array.isArray(data) ? data : [];
@@ -1470,7 +1664,7 @@
           });
           if (practiceCursor !== null) params.append('after', practiceCursor.toString());
 
-          const res = await fetch(`${BASE_URL}/questions?${params.toString()}`);
+          const res = await authedFetch(`${BASE_URL}/questions?${params.toString()}`);
           if (!res.ok) throw new Error(`Server error: ${res.status}`);
           const data = await res.json();
 
