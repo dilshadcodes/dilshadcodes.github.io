@@ -767,15 +767,42 @@ html::-webkit-scrollbar {
             animation: nudge-shake 0.4s ease 0.25s;
         }
         .nudge-toast i { color: #fff; font-size: 0.95rem; }
-        @keyframes nudge-shake {
-            0%, 100% { transform: translateX(-50%) translateY(0); }
-            25% { transform: translateX(calc(-50% - 4px)) translateY(0); }
-            75% { transform: translateX(calc(-50% + 4px)) translateY(0); }
+     
+        /* ----- SIDE PANEL LAYOUT (large screens only, 1024px+) ----- */
+        @media (min-width: 1024px) {
+            .layout-wrap {
+                display: flex;
+                align-items: flex-start;
+                gap: 32px;
+                max-width: 96rem;
+                margin: 0 auto;
+            }
+            .side-panel {
+                width: 25%;
+                flex-shrink: 0;
+                position: sticky;
+                top: 24px;
+                max-height: calc(100vh - 48px);
+                overflow-y: auto;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+            .side-panel::-webkit-scrollbar { display: none; }
+            .main-content {
+                width: 75%;
+                min-width: 0;
+            }
+            .side-panel .filter-blue-bg .flex-col.md\:flex-row {
+                flex-direction: column;
+            }
         }
         
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen p-4 md:p-12 font-sans text-gray-900">
+
+<div class="layout-wrap">
+<div class="side-panel">
 
     <!-- Header Section -->
     <header class="max-w-6xl mx-auto mb-8 border-l-4 border-indigo-600 pl-6 py-2">
@@ -885,6 +912,9 @@ html::-webkit-scrollbar {
         </div>
     </section>
 
+</div>
+<div class="main-content">
+
     <!-- Capsule Carousel -->
     <div class="max-w-6xl mx-auto mb-6 relative">
         <div id="capsule-carousel" class="flex overflow-x-auto no-scrollbar gap-3 py-4 px-8 snap-x mask-fade">
@@ -976,6 +1006,11 @@ html::-webkit-scrollbar {
         <div id="practice-empty" style="display:none;" class="empty-state">📝 No questions found for this chapter.</div>
         <div id="practice-error" style="display:none;" class="error-message" style="margin: 1rem 0;">⚠️ Failed to load questions. Please try again.</div>
     </div>
+
+</div>
+</div>
+
+    <!-- Traffic Insight Capsule -->
 
     <!-- Traffic Insight Capsule -->
     <div class="badge-fixed-corner">
