@@ -2077,7 +2077,11 @@
           }
           renderPosts(posts);
         } catch (error) {
-          postsGrid.innerHTML = `<div class="error-message col-span-full">⚠️ Failed to load lessons. Please try again.</div>`;
+          if (error.status === 403) {
+            postsGrid.innerHTML = `<div class="error-message col-span-full">🔒 It looks like you aren't enrolled in this subject yet. Join the course today to unlock all lessons, quizzes, and resources!</div>`;
+          } else {
+            postsGrid.innerHTML = `<div class="error-message col-span-full">⚠️ Failed to load lessons. Please try again.</div>`;
+          }
         }
       }
 
