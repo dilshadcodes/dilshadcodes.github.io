@@ -1635,7 +1635,11 @@
       async function fetchPostsByChapter(chapterId) {
         try {
           const res = await authedFetch(`${BASE_URL}/posts?classId=${currentClassId}&subjectId=${currentSubjectId}&chapterId=${chapterId}`);
-          if (!res.ok) throw new Error(`Posts by chapter error: ${res.status}`);
+          if (!res.ok) {
+            const err = new Error(`Posts by chapter error: ${res.status}`);
+            err.status = res.status;
+            throw err;
+          }
           const data = await res.json();
           return Array.isArray(data) ? data : [];
         } catch (err) {
@@ -1665,7 +1669,11 @@
           if (practiceCursor !== null) params.append('after', practiceCursor.toString());
 
           const res = await authedFetch(`${BASE_URL}/questions?${params.toString()}`);
-          if (!res.ok) throw new Error(`Server error: ${res.status}`);
+          if (!res.ok) {
+            const err = new Error(`Server error: ${res.status}`);
+            err.status = res.status;
+            throw err;
+          }
           const data = await res.json();
 
           const questions = data.questions || [];
@@ -1689,12 +1697,17 @@
             (typeof data.nextCursor === 'number' ? data.nextCursor : parseInt(data.nextCursor, 10)) :
             null;
           practiceHasMore = data.hasMore === true;
-        } catch (err) {
+       } catch (err) {
           console.error('Failed to fetch questions:', err);
           if (reset) {
-            document.getElementById('practice-error').style.display = 'block';
+            const errorEl = document.getElementById('practice-error');
+            errorEl.style.display = 'block';
+            errorEl.textContent = err.status === 403
+              ? "🔒 It looks like you aren't enrolled in this subject yet. Join the course today to unlock all lessons, quizzes, and resources!"
+              : '⚠️ Failed to load questions. Please try again.';
           }
-        } finally {
+        }
+          finally {
           practiceLoading = false;
           document.getElementById('practice-loader').style.display = 'none';
         }
