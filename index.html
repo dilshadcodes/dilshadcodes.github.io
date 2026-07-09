@@ -1057,23 +1057,16 @@
         </div>
       </section>
 
-      <!-- Custom Chapter Dropdown Container (existing) -->
+      <!-- Select Chapter (own separate card, same style as Course/Subject) -->
       <section class="max-w-6xl mx-auto mb-6 relative">
-        <div class="flex items-center gap-3">
-          <div class="max-w-xs flex-shrink-0" id="dropdown-container">
-            <button onclick="toggleDropdown()" class="w-full bg-white border border-gray-200 text-gray-700 py-4 px-5 rounded-xl shadow-sm flex items-center justify-between hover:border-indigo-300 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/10">
-              <span id="selected-value" class="font-bold text-sm text-gray-900 tracking-wide" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:220px; display:inline-block;">--- Select Chapter ---</span>
-              <div class="triangle-down"></div>
+        <div class="filter-blue-bg">
+          <div class="form-label">Select Chapter</div>
+          <div class="flex items-center gap-3">
+            <div id="chapterSelectWrapper" class="custom-select-wrapper flex-1" style="margin-bottom:0;"></div>
+            <button id="copy-link-btn" onclick="copyChapterLink()" title="Copy shareable link" class="flex-shrink-0 w-10 h-10 items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow transition-colors" style="display:none;">
+              <i class="fas fa-link text-sm"></i>
             </button>
-            <div class="dropdown-content bg-white border border-gray-200 rounded-xl shadow-xl animate-in fade-in slide-in-from-top-1 duration-200">
-              <div class="flex flex-col" id="dropdown-items-container">
-                <!-- Dynamically populated from API -->
-              </div>
-            </div>
           </div>
-          <button id="copy-link-btn" onclick="copyChapterLink()" title="Copy shareable link" class="flex-shrink-0 w-10 h-10 items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow transition-colors" style="display:none;">
-            <i class="fas fa-link text-sm"></i>
-          </button>
         </div>
       </section>
 
@@ -1250,9 +1243,8 @@
       let practiceQuestionCount = 0; // running total for global question numbering
 
       // DOM elements
-      const dropdownContainer = document.getElementById('dropdown-container');
-      const selectedValueSpan = document.getElementById('selected-value');
-      const dropdownItemsContainer = document.getElementById('dropdown-items-container');
+      const chapterWrapper = document.getElementById('chapterSelectWrapper');
+      let currentChapterName = '--- Select Chapter ---';
       const postsGrid = document.getElementById('posts-grid');
       const courseWrapper = document.getElementById('courseSelectWrapper');
       const subjectWrapper = document.getElementById('subjectSelectWrapper');
@@ -1513,86 +1505,7 @@
         }
       });
 
-      // ---------- DROPDOWN LOGIC (existing chapter) ----------
-      window.toggleDropdown = function() {
-        dropdownContainer.classList.toggle('dropdown-open');
-        if (dropdownContainer.classList.contains('dropdown-open')) {
-          const list = dropdownContainer.querySelector('.dropdown-content');
-          (list || dropdownContainer).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-      };
-
-      window.selectItem = function(chapterId, chapterName) {
-        selectedValueSpan.innerText = chapterName;
-        currentChapterId = chapterId === 'all' ? null : chapterId;
-        dropdownContainer.classList.remove('dropdown-open');
-        updateFeedSectionHeader();
-        if (currentChapterId) {
-          showLecturesView();
-        } else {
-          practiceMode = false;
-          document.getElementById('practice-section').classList.remove('visible');
-          postsGrid.style.display = '';
-          loadPostsForCurrentChapter();
-        }
-      };
-
-      // Close chapter dropdown on outside click (separate from custom dropdowns)
-      window.onclick = function(event) {
-        if (!event.target.closest('#dropdown-container')) {
-          dropdownContainer.classList.remove('dropdown-open');
-        }
-      };
-
-      // Populate/Repopulate chapter dropdown
-      function repopulateChapterDropdown(chapters) {
-        chaptersList = chapters || [];
-        dropdownItemsContainer.innerHTML = '';
-
-        // "Default Feed" option (renamed from "All Chapters")
-        const allBtn = document.createElement('button');
-        allBtn.className = 'dropdown-item px-5 py-3.5 text-left text-sm font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors';
-        allBtn.textContent = 'Default Feed';
-        allBtn.onclick = () => selectItem('all', 'Default Feed');
-        dropdownItemsContainer.appendChild(allBtn);
-
-        // API chapters
-        chaptersList.forEach(ch => {
-          const btn = document.createElement('button');
-          btn.className = 'dropdown-item px-5 py-3.5 text-left text-sm font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors';
-          btn.textContent = ch.chapterName;
-          btn.onclick = () => selectItem(ch.chapterId, ch.chapterName);
-          dropdownItemsContainer.appendChild(btn);
-        });
-
-        // Reset selected display to placeholder
-        selectedValueSpan.innerText = '--- Select Chapter ---';
-        currentChapterId = null;
-      }
-
-      // Initial populate with possible URL param (kept for compatibility but not used for auto-selection)
-      function populateDropdown(chapters) {
-        chaptersList = chapters || [];
-        dropdownItemsContainer.innerHTML = '';
-
-        const allBtn = document.createElement('button');
-        allBtn.className = 'dropdown-item px-5 py-3.5 text-left text-sm font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors';
-        allBtn.textContent = 'Default Feed';
-        allBtn.onclick = () => selectItem('all', 'Default Feed');
-        dropdownItemsContainer.appendChild(allBtn);
-
-        chaptersList.forEach(ch => {
-          const btn = document.createElement('button');
-          btn.className = 'dropdown-item px-5 py-3.5 text-left text-sm font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors';
-          btn.textContent = ch.chapterName;
-          btn.onclick = () => selectItem(ch.chapterId, ch.chapterName);
-          dropdownItemsContainer.appendChild(btn);
-        });
-
-        // Placeholder (no auto-selection)
-        selectedValueSpan.innerText = '--- Select Chapter ---';
-        currentChapterId = null;
-      }
+     
 
       // ---------- API CALLS ----------
       async function fetchClasses() {
@@ -2109,7 +2022,7 @@
           renderSubjectSelect(selectedClass ? selectedClass.subjects : []);
           // Reset chapter dropdown to empty/placeholder, do NOT auto-select subject
           currentSubjectId = null;
-          repopulateChapterDropdown([]);
+          renderChapterSelect([]);
           // Do NOT call resetAndReloadAfterSubjectChange here; wait for subject selection
         });
         courseWrapper.innerHTML = '';
@@ -2128,14 +2041,36 @@
         subjectWrapper.appendChild(selectEl);
       }
 
+      function renderChapterSelect(chapters, preSelectId = null) {
+        chaptersList = chapters || [];
+        const options = [{ value: 'all', label: 'Default Feed' }, ...chaptersList.map(ch => ({ value: ch.chapterId, label: ch.chapterName }))];
+        const selectEl = buildCustomSelect(options, '--- Select Chapter ---', preSelectId, (chapterId, chapterLabel) => {
+          currentChapterId = chapterId === 'all' ? null : chapterId;
+          currentChapterName = chapterLabel;
+          updateFeedSectionHeader();
+          if (currentChapterId) {
+            showLecturesView();
+          } else {
+            practiceMode = false;
+            document.getElementById('practice-section').classList.remove('visible');
+            postsGrid.style.display = '';
+            loadPostsForCurrentChapter();
+          }
+        });
+        chapterWrapper.innerHTML = '';
+        chapterWrapper.appendChild(selectEl);
+        if (!preSelectId) currentChapterName = '--- Select Chapter ---';
+      }
+
       async function resetAndReloadAfterSubjectChange() {
+       async function resetAndReloadAfterSubjectChange() {
         currentChapterId = null;
-        selectedValueSpan.innerText = '--- Select Chapter ---';
+        currentChapterName = '--- Select Chapter ---';
         updateFeedSectionHeader();
         const chapters = await fetchChapters();
-        repopulateChapterDropdown(chapters);
+        renderChapterSelect(chapters);
         await loadPostsForCurrentChapter();
-      }
+      } 
 
       function updateFeedSectionHeader() {
         const header = document.getElementById('feed-section-header');
@@ -2155,7 +2090,7 @@
             null;
           const subjectName = selectedSubject ? selectedSubject.subjectName : '';
 
-          chapterText.textContent = selectedValueSpan.innerText;
+          chapterText.textContent = currentChapterName;
           metaText.textContent = className + (subjectName ? '—' + subjectName : '');
 
           chapterDiv.style.display = 'block';
@@ -2610,10 +2545,10 @@
             renderCourseSelect(paramClassId);
             renderSubjectSelect(selectedClass ? selectedClass.subjects : [], paramSubjectId);
             const chapters = await fetchChapters();
-            populateDropdown(chapters);
             const matchedChapter = chapters.find(ch => ch.chapterId === paramChapterId);
+            renderChapterSelect(chapters, paramChapterId);
             if (matchedChapter) {
-              selectedValueSpan.innerText = matchedChapter.chapterName;
+              currentChapterName = matchedChapter.chapterName;
             }
             currentChapterId = paramChapterId;
             updateFeedSectionHeader();
@@ -2623,7 +2558,7 @@
             currentSubjectId = null;
             renderCourseSelect();
             renderSubjectSelect([]);
-            populateDropdown([]);
+            renderChapterSelect([]);
             renderPosts(recentPosts);
             updateFeedSectionHeader();
           }
