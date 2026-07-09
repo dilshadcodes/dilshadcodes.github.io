@@ -1904,7 +1904,13 @@
             if (correctAnswerBox) correctAnswerBox.classList.add('visible');
 
             if (whiteboardContainer) {
+              // Collapse whichever whiteboard was open before. It stays mounted
+              // (drawing is preserved) - only its visibility is toggled off.
+              if (window.activeTutoriumWhiteboard && window.activeTutoriumWhiteboard !== whiteboardContainer) {
+                window.activeTutoriumWhiteboard.classList.remove('visible');
+              }
               whiteboardContainer.classList.add('visible');
+              window.activeTutoriumWhiteboard = whiteboardContainer;
               if (window.mountTutoriumWhiteboard) window.mountTutoriumWhiteboard(whiteboardContainer.id);
             }
 
@@ -2610,6 +2616,7 @@
     import { Tldraw } from 'https://esm.sh/tldraw@5?deps=react@18.3.1,react-dom@18.3.1';
 
     const mountedBoards = new Set();
+    const TLDRAW_LICENSE_KEY = 'tldraw-2026-10-17/WyIyalBVazNhcCIsWyIqIl0sMTYsIjIwMjYtMTAtMTciXQ.Xjao4mdymKdT1kWmtDgYcRSHF0xfBEejvCdT2WBXk2YpxE+YF+q5yGOztP3Dhh1Yde0lC3RU9oqrwEitNQHaAw'; // <-- paste your tldraw.dev license key here
 
     // Called from the submit handler in the main script, once per question.
     window.mountTutoriumWhiteboard = function (containerId) {
@@ -2618,7 +2625,10 @@
       if (!el) return;
       mountedBoards.add(containerId);
       const root = createRoot(el);
-      root.render(React.createElement(Tldraw, { persistenceKey: containerId }));
+      root.render(React.createElement(Tldraw, {
+        persistenceKey: containerId,
+        licenseKey: TLDRAW_LICENSE_KEY || undefined,
+      }));
     };
   </script>
 </body>
