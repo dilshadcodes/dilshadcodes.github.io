@@ -2062,15 +2062,14 @@
         if (!preSelectId) currentChapterName = '--- Select Chapter ---';
       }
 
-      async function resetAndReloadAfterSubjectChange() {
-       async function resetAndReloadAfterSubjectChange() {
+     async function resetAndReloadAfterSubjectChange() {
         currentChapterId = null;
         currentChapterName = '--- Select Chapter ---';
         updateFeedSectionHeader();
         const chapters = await fetchChapters();
         renderChapterSelect(chapters);
         await loadPostsForCurrentChapter();
-      } 
+      }
 
       function updateFeedSectionHeader() {
         const header = document.getElementById('feed-section-header');
