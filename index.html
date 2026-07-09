@@ -11,6 +11,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- KaTeX for LaTeX rendering -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+  <!-- tldraw whiteboard (tutor hand-solve canvas) -->
+  <link rel="stylesheet" href="https://esm.sh/tldraw@5/tldraw.css">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js">
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js">
@@ -856,6 +858,20 @@
     }
     .correct-answer-label {
       font-weight: 700;
+    }
+    .whiteboard-container {
+      margin-top: 12px;
+      width: 100%;
+      height: 420px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #cbd5e1;
+      background-color: #ffffff;
+      display: none;
+      position: relative;
+    }
+    .whiteboard-container.visible {
+      display: block;
     }
     .practice-loader {
       text-align: center;
@@ -1821,6 +1837,15 @@
           questionDiv.appendChild(correctAnswerBox);
         }
 
+        // Whiteboard (objective only) - tutor hand-solve canvas, revealed on Submit
+        let whiteboardContainer = null;
+        if (!isSubjective) {
+          whiteboardContainer = document.createElement('div');
+          whiteboardContainer.className = 'whiteboard-container';
+          whiteboardContainer.id = `whiteboard-${globalIndex}`;
+          questionDiv.appendChild(whiteboardContainer);
+        }
+
         // Text solution container
         const textSolutionContainer = document.createElement('div');
         textSolutionContainer.className = 'solution-container';
@@ -1877,6 +1902,11 @@
               }
             });
             if (correctAnswerBox) correctAnswerBox.classList.add('visible');
+
+            if (whiteboardContainer) {
+              whiteboardContainer.classList.add('visible');
+              if (window.mountTutoriumWhiteboard) window.mountTutoriumWhiteboard(whiteboardContainer.id);
+            }
 
             if (q.solutionVideoUrl) videoSolutionBtn.disabled = false;
             if (q.solutionText) textSolutionBtn.disabled = false;
@@ -2571,6 +2601,25 @@
       document.getElementById('capsule-practice').addEventListener('click', showPracticeView);
       document.getElementById('capsule-lectures').addEventListener('click', showLecturesView);
     })();
+ </script>
+
+  <!-- tldraw whiteboard: lets a tutor sketch a hand-solved solution under each objective question -->
+  <script type="module">
+    import React from 'https://esm.sh/react@18.3.1';
+    import { createRoot } from 'https://esm.sh/react-dom@18.3.1/client';
+    import { Tldraw } from 'https://esm.sh/tldraw@5?deps=react@18.3.1,react-dom@18.3.1';
+
+    const mountedBoards = new Set();
+
+    // Called from the submit handler in the main script, once per question.
+    window.mountTutoriumWhiteboard = function (containerId) {
+      if (mountedBoards.has(containerId)) return; // already mounted, skip
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      mountedBoards.add(containerId);
+      const root = createRoot(el);
+      root.render(React.createElement(Tldraw, { persistenceKey: containerId }));
+    };
   </script>
 </body>
 </html>
