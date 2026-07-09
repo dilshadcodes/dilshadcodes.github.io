@@ -2011,6 +2011,7 @@
       // ---------- PRACTICE: VIEW TOGGLE ----------
       function showPracticeView() {
         hideGlobalWhiteboard();
+        if (practiceMode) return;
         if (!currentClassId || !currentSubjectId || !currentChapterId) {
           showNudgeToast('Pick a class, subject, and chapter first');
           return;
@@ -2037,6 +2038,7 @@
 
       function showLecturesView() {
         hideGlobalWhiteboard();
+        if (!practiceMode) return;
         practiceMode = false;
 
         // Hide practice, show posts
