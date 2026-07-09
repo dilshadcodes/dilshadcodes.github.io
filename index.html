@@ -1820,7 +1820,7 @@
           `<svg style="width:22px;height:22px;color:white;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.2));" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z"/></svg>`;
         textSolutionBtn.className = 'btn-gold-text-solution';
         textSolutionBtn.title = 'Text Solution';
-        textSolutionBtn.disabled = !q.solutionText;
+       textSolutionBtn.disabled = isSubjective && !q.solutionText;
         actionRow.appendChild(textSolutionBtn);
         questionDiv.appendChild(actionRow);
 
