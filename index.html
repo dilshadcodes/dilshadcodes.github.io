@@ -1903,17 +1903,6 @@
             });
             if (correctAnswerBox) correctAnswerBox.classList.add('visible');
 
-            if (whiteboardContainer) {
-              // Collapse whichever whiteboard was open before. It stays mounted
-              // (drawing is preserved) - only its visibility is toggled off.
-              if (window.activeTutoriumWhiteboard && window.activeTutoriumWhiteboard !== whiteboardContainer) {
-                window.activeTutoriumWhiteboard.classList.remove('visible');
-              }
-              whiteboardContainer.classList.add('visible');
-              window.activeTutoriumWhiteboard = whiteboardContainer;
-              if (window.mountTutoriumWhiteboard) window.mountTutoriumWhiteboard(whiteboardContainer.id);
-            }
-
             if (q.solutionVideoUrl) videoSolutionBtn.disabled = false;
             if (q.solutionText) textSolutionBtn.disabled = false;
             submitted = true;
@@ -1936,7 +1925,20 @@
         textSolutionBtn.onclick = () => {
           const wasVisible = textSolutionContainer.classList.contains('visible');
           textSolutionContainer.classList.toggle('visible', !wasVisible);
-          if (!wasVisible) videoSolutionContainer.classList.remove('visible');
+          if (!wasVisible) {
+            videoSolutionContainer.classList.remove('visible');
+
+            if (whiteboardContainer) {
+              // Collapse whichever whiteboard was open before. It stays mounted
+              // (drawing is preserved) - only its visibility is toggled off.
+              if (window.activeTutoriumWhiteboard && window.activeTutoriumWhiteboard !== whiteboardContainer) {
+                window.activeTutoriumWhiteboard.classList.remove('visible');
+              }
+              whiteboardContainer.classList.add('visible');
+              window.activeTutoriumWhiteboard = whiteboardContainer;
+              if (window.mountTutoriumWhiteboard) window.mountTutoriumWhiteboard(whiteboardContainer.id);
+            }
+          }
         };
 
         renderMathInElementWithDelay(questionDiv);
