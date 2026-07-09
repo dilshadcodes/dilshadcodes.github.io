@@ -1487,7 +1487,6 @@
         trigger.addEventListener('click', (e) => {
           e.stopPropagation();
           closeAllCustomDropdowns();
-          dropdownContainer.classList.remove('dropdown-open');
           dropdown.classList.add('show');
           trigger.classList.add('open');
           dropdown.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
