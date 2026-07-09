@@ -873,6 +873,33 @@
     .whiteboard-container.visible {
       display: block;
     }
+    /* ----- GLOBAL WHITEBOARD OVERLAY (covers entire feed / main-content) ----- */
+    .global-whiteboard-overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      z-index: 40;
+    }
+    .global-whiteboard-overlay.visible {
+      display: block;
+    }
+    .global-whiteboard-board {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    /* Disable WhiteBoard button on mobile / small screens (below 1024px) */
+    @media (max-width: 1023px) {
+      #capsule-whiteboard {
+        opacity: 0.45;
+        pointer-events: none;
+        cursor: not-allowed;
+        filter: grayscale(0.5);
+      }
+    }
     .practice-loader {
       text-align: center;
       padding: 20px;
@@ -961,6 +988,7 @@
         overflow-y: auto;
         scrollbar-width: none;
         -ms-overflow-style: none;
+        position: relative;
       }
       .main-content::-webkit-scrollbar {
         display: none;
@@ -1122,12 +1150,12 @@
               <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-700">Notes</span>
             </button>
 
-            <!-- Saved -->
-            <button class="flex-1 min-w-[45%] flex items-center gap-2.5 bg-white p-1 pr-4 rounded-full border border-slate-200/60 transition-all duration-300 hover:scale-105 active:scale-95 capsule-shadow-rose">
+            <!-- WhiteBoard -->
+            <button id="capsule-whiteboard" class="flex-1 min-w-[45%] flex items-center gap-2.5 bg-white p-1 pr-4 rounded-full border border-slate-200/60 transition-all duration-300 hover:scale-105 active:scale-95 capsule-shadow-rose">
               <div class="w-8 h-8 rounded-full bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center shadow-sm text-white">
-                <i data-lucide="star" class="w-4 h-4" stroke-width="2.5"></i>
+                <i data-lucide="layout-panel-left" class="w-4 h-4" stroke-width="2.5"></i>
               </div>
-              <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-700">Saved</span>
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-700">WhiteBoard</span>
             </button>
           </div>
         </div>
@@ -1170,6 +1198,11 @@
         <div id="practice-loader" class="practice-loader">Loading more questions...</div>
         <div id="practice-empty" style="display:none;" class="empty-state">📝 No questions found for this chapter.</div>
         <div id="practice-error" style="display:none;" class="error-message" style="margin: 1rem 0;">⚠️ Failed to load questions. Please try again.</div>
+      </div>
+
+      <!-- Global WhiteBoard Overlay (covers entire feed region, no header/cancel button) -->
+      <div id="global-whiteboard-overlay" class="global-whiteboard-overlay">
+        <div id="global-whiteboard-board" class="global-whiteboard-board"></div>
       </div>
 
     </div>
@@ -1974,6 +2007,7 @@
 
       // ---------- PRACTICE: VIEW TOGGLE ----------
       function showPracticeView() {
+        hideGlobalWhiteboard();
         if (!currentClassId || !currentSubjectId || !currentChapterId) {
           showNudgeToast('Pick a class, subject, and chapter first');
           return;
@@ -1999,6 +2033,7 @@
       }
 
       function showLecturesView() {
+        hideGlobalWhiteboard();
         practiceMode = false;
 
         // Hide practice, show posts
@@ -2608,6 +2643,37 @@
       // ---------- CAPSULE CLICK HANDLERS ----------
       document.getElementById('capsule-practice').addEventListener('click', showPracticeView);
       document.getElementById('capsule-lectures').addEventListener('click', showLecturesView);
+
+      // ---------- GLOBAL WHITEBOARD (covers entire feed on desktop) ----------
+      function showGlobalWhiteboard() {
+        if (window.innerWidth < 1024) return; // disabled on mobile / small screens
+        const overlay = document.getElementById('global-whiteboard-overlay');
+        const mainEl = document.querySelector('.main-content');
+        if (!overlay) return;
+        overlay.classList.add('visible');
+        if (mainEl) {
+          mainEl.scrollTop = 0;
+          mainEl.style.overflow = 'hidden';
+        }
+        if (window.mountTutoriumWhiteboard) window.mountTutoriumWhiteboard('global-whiteboard-board');
+      }
+
+      function hideGlobalWhiteboard() {
+        const overlay = document.getElementById('global-whiteboard-overlay');
+        const mainEl = document.querySelector('.main-content');
+        if (overlay) overlay.classList.remove('visible');
+        if (mainEl) mainEl.style.overflow = '';
+      }
+
+      document.getElementById('capsule-whiteboard').addEventListener('click', function() {
+        if (window.innerWidth < 1024) return;
+        const overlay = document.getElementById('global-whiteboard-overlay');
+        if (overlay && overlay.classList.contains('visible')) {
+          hideGlobalWhiteboard();
+        } else {
+          showGlobalWhiteboard();
+        }
+      });
     })();
  </script>
 
