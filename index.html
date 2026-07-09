@@ -1000,15 +1000,26 @@
           </form>
 
           <form id="signup-form" class="hidden flex-col gap-3">
-            <input type="text"     id="signup-name"      placeholder="Full name"      required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-            <input type="email"    id="signup-email"     placeholder="Email"          required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-            <input type="tel"      id="signup-contact"   placeholder="Contact number" required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-            <input type="url"      id="signup-photo"     placeholder="Profile photo URL" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-            <textarea              id="signup-about"     placeholder="About you" rows="2" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20"></textarea>
-            <input type="url"      id="signup-instagram" placeholder="Instagram URL" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-            <input type="password" id="signup-password"  placeholder="Set password" required minlength="6" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+            <div class="signup-step" data-step="0">
+              <input type="text"  id="signup-name"  placeholder="Full name" required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 mb-3">
+              <input type="email" id="signup-email" placeholder="Email"     required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+            </div>
+            <div class="signup-step hidden" data-step="1">
+              <input type="tel" id="signup-contact" placeholder="Contact number"    required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 mb-3">
+              <input type="url" id="signup-photo"   placeholder="Profile photo URL" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+            </div>
+            <div class="signup-step hidden" data-step="2">
+              <textarea id="signup-about" placeholder="About you" rows="2" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20 mb-3"></textarea>
+              <input type="url" id="signup-instagram" placeholder="Instagram URL" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+            </div>
+            <div class="signup-step hidden" data-step="3">
+              <input type="password" id="signup-password" placeholder="Set password" required minlength="6" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+            </div>
             <p id="signup-error" class="text-xs text-red-600 hidden"></p>
-            <button type="submit" id="signup-submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg transition-colors">Create Account</button>
+            <div class="flex gap-2">
+              <button type="button" id="signup-back" class="hidden w-1/3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2.5 rounded-lg transition-colors">Back</button>
+              <button type="button" id="signup-next" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg transition-colors">Next</button>
+            </div>
           </form>
         </div>
 
@@ -1239,7 +1250,10 @@
       const signinError  = document.getElementById('signin-error');
       const signupError  = document.getElementById('signup-error');
       const signinSubmit = document.getElementById('signin-submit');
-      const signupSubmit = document.getElementById('signup-submit');
+      const signupNext   = document.getElementById('signup-next');
+      const signupBack   = document.getElementById('signup-back');
+      const signupSteps  = Array.from(document.querySelectorAll('.signup-step'));
+      let signupStepIndex = 0;
       const logoutBtn    = document.getElementById('logout-btn');
 
       // ---------- AUTH: TAB TOGGLE ----------
@@ -1262,6 +1276,8 @@
         signupForm.classList.add('flex');
         signinForm.classList.add('hidden');
         signinForm.classList.remove('flex');
+        signupStepIndex = 0;
+        showSignupStep(signupStepIndex);
       });
 
       // ---------- AUTH: ERROR MESSAGES ----------
@@ -1297,12 +1313,46 @@
         }
       });
 
-      // ---------- AUTH: SIGN UP ----------
-      signupForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+      // ---------- AUTH: SIGN UP (multi-step) ----------
+      function showSignupStep(index) {
+        signupSteps.forEach((step, i) => step.classList.toggle('hidden', i !== index));
+        signupBack.classList.toggle('hidden', index === 0);
+        signupNext.textContent = (index === signupSteps.length - 1) ? 'Create Account' : 'Next';
+      }
+
+      function validateSignupStep(index) {
+        const fields = signupSteps[index].querySelectorAll('input[required], textarea[required]');
+        for (const field of fields) {
+          if (!field.value.trim() || !field.checkValidity()) {
+            signupError.textContent = 'Please fill this field correctly before continuing.';
+            signupError.classList.remove('hidden');
+            field.focus();
+            return false;
+          }
+        }
         signupError.classList.add('hidden');
-        signupSubmit.disabled = true;
-        signupSubmit.textContent = 'Creating account…';
+        return true;
+      }
+
+      signupBack.addEventListener('click', () => {
+        signupError.classList.add('hidden');
+        signupStepIndex = Math.max(0, signupStepIndex - 1);
+        showSignupStep(signupStepIndex);
+      });
+
+      signupNext.addEventListener('click', async () => {
+        if (!validateSignupStep(signupStepIndex)) return;
+
+        if (signupStepIndex < signupSteps.length - 1) {
+          signupStepIndex++;
+          showSignupStep(signupStepIndex);
+          return;
+        }
+
+        // Final step -> actually create the account
+        signupError.classList.add('hidden');
+        signupNext.disabled = true;
+        signupNext.textContent = 'Creating account…';
         try {
           const name         = document.getElementById('signup-name').value.trim();
           const email        = document.getElementById('signup-email').value.trim();
@@ -1331,12 +1381,10 @@
         } catch (err) {
           signupError.textContent = mapAuthError(err);
           signupError.classList.remove('hidden');
-        } finally {
-          signupSubmit.disabled = false;
-          signupSubmit.textContent = 'Create Account';
+          signupNext.disabled = false;
+          signupNext.textContent = 'Create Account';
         }
       });
-
       // ---------- AUTH: LOGOUT ----------
       logoutBtn.addEventListener('click', () => auth.signOut());
 
