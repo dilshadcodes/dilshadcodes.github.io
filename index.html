@@ -894,41 +894,14 @@
       height: 100%;
       position: relative;
     }
-    /* Mobile / tablet (<1024px): whiteboard opens fullscreen, forced landscape */
-    .global-whiteboard-overlay.mobile-fullscreen {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      width: 100vh;
-      height: 100vw;
-      margin-top: -50vw;
-      margin-left: -50vh;
-      transform: rotate(90deg);
-      transform-origin: center;
-      z-index: 9999;
-      border-radius: 0;
-      border: none;
-    }
-    .global-whiteboard-hide-btn {
-      display: none;
-      position: absolute;
-      bottom: 16px;
-      left: 16px;
-      z-index: 10000;
-      background: #000;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 10px 18px;
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
-      cursor: pointer;
-    }
-    .global-whiteboard-hide-btn.visible {
-      display: block;
+    /* Disable WhiteBoard button on mobile / small screens (below 1024px) */
+    @media (max-width: 1023px) {
+      #capsule-whiteboard {
+        opacity: 0.45;
+        pointer-events: none;
+        cursor: not-allowed;
+        filter: grayscale(0.5);
+      }
     }
     .practice-loader {
       text-align: center;
@@ -1230,10 +1203,9 @@
         <div id="practice-error" style="display:none;" class="error-message" style="margin: 1rem 0;">⚠️ Failed to load questions. Please try again.</div>
       </div>
 
-      <!-- Global WhiteBoard Overlay (desktop: covers feed region / mobile: fullscreen landscape) -->
+      <!-- Global WhiteBoard Overlay (covers entire feed region, no header/cancel button) -->
       <div id="global-whiteboard-overlay" class="global-whiteboard-overlay">
         <div id="global-whiteboard-board" class="global-whiteboard-board"></div>
-        <button id="global-whiteboard-hide-btn" class="global-whiteboard-hide-btn">Hide</button>
       </div>
 
     </div>
@@ -2675,28 +2647,12 @@
       document.getElementById('capsule-practice').addEventListener('click', showPracticeView);
       document.getElementById('capsule-lectures').addEventListener('click', showLecturesView);
 
-      // ---------- GLOBAL WHITEBOARD ----------
-      // Desktop (>=1024px): inline overlay covering the feed, same as before.
-      // Mobile/tablet (<1024px): fullscreen forced-landscape overlay with a Hide button.
-      function isMobileWhiteboard() {
-        return window.innerWidth < 1024;
-      }
-
+      // ---------- GLOBAL WHITEBOARD (covers entire feed on desktop) ----------
       function showGlobalWhiteboard() {
+        if (window.innerWidth < 1024) return; // disabled on mobile / small screens
         const overlay = document.getElementById('global-whiteboard-overlay');
-        const hideBtn = document.getElementById('global-whiteboard-hide-btn');
         const mainEl = document.querySelector('.main-content');
         if (!overlay) return;
-
-        if (isMobileWhiteboard()) {
-          overlay.classList.add('mobile-fullscreen');
-          document.body.style.overflow = 'hidden';
-          if (hideBtn) hideBtn.classList.add('visible');
-        } else {
-          overlay.classList.remove('mobile-fullscreen');
-          if (hideBtn) hideBtn.classList.remove('visible');
-        }
-
         overlay.classList.add('visible');
         if (mainEl) {
           mainEl.scrollTop = 0;
@@ -2707,18 +2663,13 @@
 
       function hideGlobalWhiteboard() {
         const overlay = document.getElementById('global-whiteboard-overlay');
-        const hideBtn = document.getElementById('global-whiteboard-hide-btn');
         const mainEl = document.querySelector('.main-content');
-        if (overlay) {
-          overlay.classList.remove('visible');
-          overlay.classList.remove('mobile-fullscreen');
-        }
-        if (hideBtn) hideBtn.classList.remove('visible');
+        if (overlay) overlay.classList.remove('visible');
         if (mainEl) mainEl.style.overflow = '';
-        document.body.style.overflow = '';
       }
 
       document.getElementById('capsule-whiteboard').addEventListener('click', function() {
+        if (window.innerWidth < 1024) return;
         const overlay = document.getElementById('global-whiteboard-overlay');
         if (overlay && overlay.classList.contains('visible')) {
           hideGlobalWhiteboard();
@@ -2726,8 +2677,6 @@
           showGlobalWhiteboard();
         }
       });
-
-      document.getElementById('global-whiteboard-hide-btn').addEventListener('click', hideGlobalWhiteboard);
     })();
  </script>
 
