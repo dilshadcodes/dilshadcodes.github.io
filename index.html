@@ -894,8 +894,8 @@
       height: 100%;
       position: relative;
     }
-    /* Disable WhiteBoard button only in true mobile portrait (narrow AND not landscape) */
-    @media (max-width: 767px) and (orientation: portrait) {
+    /* Disable WhiteBoard button on mobile / small screens (below 1024px) */
+    @media (max-width: 1023px) {
       #capsule-whiteboard {
         opacity: 0.45;
         pointer-events: none;
@@ -957,8 +957,8 @@
       font-size: 0.95rem;
     }
 
-    /* ----- SIDE PANEL LAYOUT: desktop width, OR landscape orientation (tablets/mobile) ----- */
-    @media (min-width: 768px), (orientation: landscape) {
+    /* ----- SIDE PANEL LAYOUT (large screens only, 1024px+) ----- */
+    @media (min-width: 1024px) {
       html,
       body {
         height: 100%;
@@ -2647,13 +2647,9 @@
       document.getElementById('capsule-practice').addEventListener('click', showPracticeView);
       document.getElementById('capsule-lectures').addEventListener('click', showLecturesView);
 
-      // ---------- GLOBAL WHITEBOARD (covers entire feed on desktop / tablet / landscape) ----------
-      function isWhiteboardAllowed() {
-        return window.matchMedia('(min-width: 768px), (orientation: landscape)').matches;
-      }
-
+      // ---------- GLOBAL WHITEBOARD (covers entire feed on desktop) ----------
       function showGlobalWhiteboard() {
-        if (!isWhiteboardAllowed()) return; // disabled only in narrow mobile portrait
+        if (window.innerWidth < 1024) return; // disabled on mobile / small screens
         const overlay = document.getElementById('global-whiteboard-overlay');
         const mainEl = document.querySelector('.main-content');
         if (!overlay) return;
@@ -2673,7 +2669,7 @@
       }
 
       document.getElementById('capsule-whiteboard').addEventListener('click', function() {
-        if (!isWhiteboardAllowed()) return;
+        if (window.innerWidth < 1024) return;
         const overlay = document.getElementById('global-whiteboard-overlay');
         if (overlay && overlay.classList.contains('visible')) {
           hideGlobalWhiteboard();
