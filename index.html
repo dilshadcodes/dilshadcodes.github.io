@@ -1820,6 +1820,7 @@
           `<svg style="width:22px;height:22px;color:white;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.2));" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z"/></svg>`;
         textSolutionBtn.className = 'btn-gold-text-solution';
         textSolutionBtn.title = 'Text Solution';
+        textSolutionBtn.disabled = !q.solutionText;
         actionRow.appendChild(textSolutionBtn);
         questionDiv.appendChild(actionRow);
 
@@ -1837,7 +1838,7 @@
           questionDiv.appendChild(correctAnswerBox);
         }
 
-        // Whiteboard (objective only) - tutor hand-solve canvas, revealed on Submit
+        // Whiteboard (objective only) - tutor hand-solve canvas container
         let whiteboardContainer = null;
         if (!isSubjective) {
           whiteboardContainer = document.createElement('div');
@@ -1887,7 +1888,7 @@
           let submitted = false;
 
           videoSolutionBtn.disabled = true;
-          textSolutionBtn.disabled = true;
+          
           submitBtn.onclick = () => {
             if (submitted) return;
             const selectedRadio = document.querySelector(`input[name="pq_${globalIndex}"]:checked`);
@@ -1904,14 +1905,14 @@
             if (correctAnswerBox) correctAnswerBox.classList.add('visible');
 
             if (q.solutionVideoUrl) videoSolutionBtn.disabled = false;
-            if (q.solutionText) textSolutionBtn.disabled = false;
+            
             submitted = true;
             submitBtn.disabled = true;
           };
         } else {
 
           videoSolutionBtn.disabled = false;
-          if (q.solutionText) textSolutionBtn.disabled = false;
+          
         }
 
         // Solution toggle logic
@@ -1927,6 +1928,7 @@
           textSolutionContainer.classList.toggle('visible', !wasVisible);
           if (!wasVisible) {
             videoSolutionContainer.classList.remove('visible');
+            // Whiteboard is actually revealed/hidden here, tied to the Text Solution toggle
 
             if (whiteboardContainer) {
               // Collapse whichever whiteboard was open before. It stays mounted
@@ -1939,6 +1941,13 @@
               if (window.mountTutoriumWhiteboard) window.mountTutoriumWhiteboard(whiteboardContainer.id);
             }
           }
+          }
+        } else if (whiteboardContainer) {
+  whiteboardContainer.classList.remove('visible');
+  if (window.activeTutoriumWhiteboard === whiteboardContainer) {
+    window.activeTutoriumWhiteboard = null;
+  }
+}
         };
 
         renderMathInElementWithDelay(questionDiv);
