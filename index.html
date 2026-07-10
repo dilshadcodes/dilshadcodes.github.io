@@ -12,7 +12,18 @@
   <!-- KaTeX for LaTeX rendering -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
   <!-- Excalidraw whiteboard (tutor hand-solve canvas) -->
-  <link rel="stylesheet" href="https://esm.sh/@excalidraw/excalidraw@0.18.0/dist/dev/index.css">
+  <style>
+  /* Remove Excalidraw's on-canvas hint text (e.g. "drag and drop", "release when finished") */
+  .excalidraw .HintViewer {
+    display: none !important;
+  }
+   /* Remove the Library button/sidebar trigger */
+  .excalidraw [class*="library" i],
+  .excalidraw [aria-label*="Library" i],
+  .excalidraw .default-sidebar-trigger {
+    display: none !important;
+  }
+</style>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js">
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js">
@@ -2695,7 +2706,13 @@
       if (!el) return;
       mountedBoards.add(containerId);
       const root = createRoot(el);
-      root.render(React.createElement(ExcalidrawLib.Excalidraw, {}));
+      root.render(React.createElement(ExcalidrawLib.Excalidraw, {
+  UIOptions: {
+    canvasActions: {
+      loadScene: false, // removes "Open" from the menu, which is tied to file/library loading
+    },
+  },
+}));
     };
   </script> 
 </body>
