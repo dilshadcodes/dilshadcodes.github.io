@@ -871,19 +871,101 @@
     </div>
     <div class="sidebar">
       <div class="side-group">
-        <div class="group-title">ELECTRICITY AND MAGNETISM</div>
+        <div class="group-title">HOSTEL MANAGEMENT</div>
 
-        <a class="side-item" href="/electrostatics/">
+        <a class="side-item{% if page.active == 'branches' %} active{% endif %}" href="/branches/">
           <span class="label">
-            <span class="material-symbols-outlined">list</span>
-            1.1. Electrostatics
+            <span class="material-symbols-outlined">apartment</span>
+            Branch Setup
           </span>
         </a>
 
-        <a class="side-item" href="/electric-current/">
+        <a class="side-item{% if page.active == 'rooms' %} active{% endif %}" href="/rooms/">
           <span class="label">
-            <span class="material-symbols-outlined">list</span>
-            1.2. Electric Current
+            <span class="material-symbols-outlined">bed</span>
+            Room Setup
+          </span>
+        </a>
+
+        <a class="side-item{% if page.active == 'seats' %} active{% endif %}" href="/seats/">
+          <span class="label">
+            <span class="material-symbols-outlined">event_seat</span>
+            Bed Setup
+          </span>
+        </a>
+      </div>
+
+      <div class="side-group">
+        <div class="group-title">STUDENT MANAGEMENT</div>
+
+        <a class="side-item{% if page.active == 'register-student' %} active{% endif %}" href="/register-student/">
+          <span class="label">
+            <span class="material-symbols-outlined">person_add</span>
+            Register Student
+          </span>
+        </a>
+
+        <a class="side-item{% if page.active == 'student-records' %} active{% endif %}" href="/student-records/">
+          <span class="label">
+            <span class="material-symbols-outlined">group</span>
+            Student Records
+          </span>
+        </a>
+
+        <a class="side-item{% if page.active == 'complaints' %} active{% endif %}" href="/complaints/">
+          <span class="label">
+            <span class="material-symbols-outlined">feedback</span>
+            Complaints
+          </span>
+        </a>
+      </div>
+
+      <div class="side-group">
+        <div class="group-title">FEE MANAGEMENT</div>
+
+        <a class="side-item{% if page.active == 'fee-structure' %} active{% endif %}" href="/fee-structure/">
+          <span class="label">
+            <span class="material-symbols-outlined">price_change</span>
+            Fee Structure
+          </span>
+        </a>
+
+        <a class="side-item{% if page.active == 'billing-setup' %} active{% endif %}" href="/billing-setup/">
+          <span class="label">
+            <span class="material-symbols-outlined">receipt_long</span>
+            Billing Setup
+          </span>
+        </a>
+
+        <a class="side-item{% if page.active == 'financial-reports' %} active{% endif %}" href="/financial-reports/">
+          <span class="label">
+            <span class="material-symbols-outlined">assessment</span>
+            Financial Reports
+          </span>
+        </a>
+      </div>
+
+      <div class="side-group">
+        <div class="group-title">PROFILE MANAGEMENT</div>
+
+        <a class="side-item{% if page.active == 'profile-setup' %} active{% endif %}" href="/profile-setup/">
+          <span class="label">
+            <span class="material-symbols-outlined">manage_accounts</span>
+            Profile Setup
+          </span>
+        </a>
+
+        <a class="side-item{% if page.active == 'settings' %} active{% endif %}" href="/settings/">
+          <span class="label">
+            <span class="material-symbols-outlined">settings</span>
+            Settings
+          </span>
+        </a>
+
+        <a class="side-item{% if page.active == 'help-center' %} active{% endif %}" href="/help-center/">
+          <span class="label">
+            <span class="material-symbols-outlined">help</span>
+            Help Center
           </span>
         </a>
       </div>
